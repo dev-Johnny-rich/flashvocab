@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import type { Word, WordBook } from "@/lib/types";
+import TopBar from "@/components/top-bar";
 
 const SERIF =
   'Baskerville, "Songti SC", "Noto Serif SC", "SimSun", Georgia, serif';
@@ -28,20 +29,7 @@ export default function StudyView({ onBack }: { onBack?: () => void }) {
 
   return (
     <main className="view-in flex min-h-screen flex-col bg-background">
-      {/* 顶栏 */}
-      <header className="flex h-14 shrink-0 items-center justify-between border-b border-neutral-200/80 px-5 sm:px-8">
-        <span
-          className="cursor-pointer text-lg text-foreground transition hover:text-neutral-500"
-          style={{ fontFamily: SERIF }}
-          onClick={onBack}
-          title="返回主页"
-        >
-          词闪记
-        </span>
-        <span className="text-sm text-neutral-400">
-          四级词汇 · 共 3849 词
-        </span>
-      </header>
+      <TopBar label="四级词汇 · 共 3849 词" onBack={onBack} />
 
       {/* 词卡区域 */}
       <section className="flex flex-1 items-center justify-center p-6">
