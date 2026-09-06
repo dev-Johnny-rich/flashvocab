@@ -39,7 +39,7 @@ export default function HomeView({
       <div className="marquee absolute inset-x-0 top-0 z-10 border-b border-black/5 bg-white/60 py-2 backdrop-blur-sm">
         <div className="marquee-track text-[13px] tracking-[0.12em] text-neutral-700">
           <span>
-            欢迎使用词闪记 / Flashvocab web，本网站功能将持续更新，希望大家可以喜欢并多多支持
+            欢迎使用词闪记 / Flashvocab web，本网站功能将持续更新，希望大家可以喜欢并多多支持。记完之后，数据记得点击数据备份保存到本地。
           </span>
         </div>
       </div>
