@@ -144,16 +144,11 @@ export default function SpellingView({
 
   return (
     <main className="view-in flex min-h-screen flex-col bg-background">
-      {/* 隐藏输入框：接收键盘输入并唤起移动端软键盘 */}
+      {/* 隐藏输入框：仅为唤起移动端软键盘；键盘输入统一走 window 监听（避免双触发） */}
       <input
         ref={inputRef}
         autoFocus
         className="pointer-events-none absolute h-px w-px opacity-0"
-        onKeyDown={(e) => {
-          e.preventDefault();
-          const ke = e.nativeEvent;
-          onKey(ke as unknown as KeyboardEvent);
-        }}
         aria-label="默写输入"
       />
       <TopBar label={`默写 ${Math.min(idx + 1, words.length)} / ${words.length}`} onBack={onClose} />
