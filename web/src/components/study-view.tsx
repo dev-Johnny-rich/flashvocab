@@ -6,7 +6,7 @@ import type { Word, WordBook } from "@/lib/types";
 const SERIF =
   'Baskerville, "Songti SC", "Noto Serif SC", "SimSun", Georgia, serif';
 
-export default function StudyView() {
+export default function StudyView({ onBack }: { onBack?: () => void }) {
   const [book, setBook] = useState<WordBook | null>(null);
   const [error, setError] = useState(false);
 
@@ -31,8 +31,10 @@ export default function StudyView() {
       {/* 顶栏 */}
       <header className="flex h-14 shrink-0 items-center justify-between border-b border-neutral-200/80 px-5 sm:px-8">
         <span
-          className="text-lg text-foreground"
+          className="cursor-pointer text-lg text-foreground transition hover:text-neutral-500"
           style={{ fontFamily: SERIF }}
+          onClick={onBack}
+          title="返回主页"
         >
           词闪记
         </span>
