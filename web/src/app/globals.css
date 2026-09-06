@@ -90,6 +90,7 @@ body {
 .marquee-track {
   display: inline-flex;
   width: max-content;
+  /* 从视口右侧外(隧道口)驶入，平移一个周期(--cycle)后视觉无缝接续 */
   animation: marquee-scroll 16s linear infinite;
 }
 
@@ -103,10 +104,10 @@ body {
 
 @keyframes marquee-scroll {
   from {
-    transform: translateX(0);
+    transform: translateX(100vw);
   }
   to {
-    transform: translateX(-50%);
+    transform: translateX(calc(100vw - var(--cycle, 800px)));
   }
 }
 
