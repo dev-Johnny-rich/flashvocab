@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { Word } from "@/lib/types";
 import TopBar from "@/components/top-bar";
+import { playDingDong } from "@/lib/sound";
 
 const SERIF =
   'Baskerville, "Songti SC", "Noto Serif SC", "SimSun", Georgia, serif';
@@ -72,6 +73,7 @@ export default function SpellingView({
   // 结果短暂展示后推进下一词（独立 effect，避免被状态变更 cleanup 打断）
   useEffect(() => {
     if (phase === "ok") {
+      playDingDong(); // 拼写正确音效
       const t = window.setTimeout(() => next("ok"), 800);
       return () => window.clearTimeout(t);
     }
