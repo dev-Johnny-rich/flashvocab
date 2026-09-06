@@ -107,6 +107,20 @@ export function addLog(
   };
 }
 
+// 某词今天最后一次评分（列表标记用）
+export function lastRatingToday(
+  logs: Record<string, LogEntry[]>,
+  word: string,
+  today: string = todayStr(),
+): Rating | null {
+  const arr = logs[word];
+  if (!arr) return null;
+  for (let i = arr.length - 1; i >= 0; i--) {
+    if (arr[i].at.slice(0, 10) === today) return arr[i].r;
+  }
+  return null;
+}
+
 // 确保今日会话存在（跨天自动开新一批），返回新状态
 export function ensureToday(
   s: StudyState,

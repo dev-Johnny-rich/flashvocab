@@ -8,6 +8,7 @@ import WordModal from "@/components/word-modal";
 import {
   addLog,
   ensureToday,
+  lastRatingToday,
   loadStudyState,
   saveStudyState,
   todayStr,
@@ -78,15 +79,8 @@ export default function StudyView({ onBack }: { onBack?: () => void }) {
   }, [book, daily]);
 
   // 某词今天最后一次评分（列表标记用）
-  const todayRatingOf = (word: string): string | null => {
-    const t = todayStr();
-    const arr = state.logs[word];
-    if (!arr) return null;
-    for (let i = arr.length - 1; i >= 0; i--) {
-      if (arr[i].at.slice(0, 10) === t) return arr[i].r;
-    }
-    return null;
-  };
+  const todayRatingOf = (word: string): Rating | null =>
+    lastRatingToday(state.logs, word);
 
   if (error) {
     return (

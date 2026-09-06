@@ -4,8 +4,10 @@ import { useEffect, useMemo, useState } from "react";
 import type { Word, WordBook } from "@/lib/types";
 import TopBar from "@/components/top-bar";
 import WordCard from "@/components/word-card";
+import WordModal from "@/components/word-modal";
 import {
   addLog,
+  lastRatingToday,
   loadStudyState,
   saveStudyState,
   todayStr,
@@ -14,6 +16,7 @@ import {
   type StudyState,
 } from "@/lib/storage";
 import {
+  dueInDaysText,
   isDueCard,
   newCard,
   reviveCard,
@@ -37,6 +40,7 @@ export default function ReviewView({
     loadStudyState().review,
   );
   const [flipped, setFlipped] = useState(false);
+  const [selected, setSelected] = useState<Word | null>(null);
 
   useEffect(() => {
     let alive = true;
@@ -136,28 +140,99 @@ export default function ReviewView({
   // —— 复习完成页 ——
   if (finished) {
     return (
-      <main className="view-in flex min-h-screen flex-col bg-background">
+      <main className="view-in flex h-screen flex-col bg-background">
         <TopBar label="复习 · 已完成" onBack={onBack} />
-        <section className="flex flex-1 flex-col items-center justify-center gap-5 px-6 text-center">
-          <h1
-            className="text-5xl font-normal text-foreground sm:text-6xl"
-            style={{ fontFamily: SERIF }}
-          >
-            今日复习完成
-          </h1>
-          <p className="text-base text-neutral-500">
-            共复习了 {queue.length} 个单词
-          </p>
-          <button
-            onClick={onBack}
-            className="mt-6 rounded-full bg-neutral-900 px-10 py-3 text-base text-white transition hover:bg-neutral-700 active:scale-[0.98]"
-          >
-            返回主页
-          </button>
-          <p className="mt-2 text-[15px] text-neutral-500">
-            🎉 复习是记忆的关键，明天继续
-          </p>
-        </section>
+        <div className="flex min-h-0 flex-1 flex-col lg:flex-row">
+          {/* 主区 */}
+          <section className="flex flex-1 flex-col items-center justify-center gap-5 overflow-y-auto px-6 py-10 text-center">
+            <h1
+              className="text-5xl font-normal text-foreground sm:text-6xl"
+              style={{ fontFamily: SERIF }}
+            >
+              今日复习完成
+            </h1>
+            <p className="text-base text-neutral-500">
+              共复习了 {queue.length} 个单词
+            </p>
+            <button
+              onClick={onBack}
+              className="mt-6 rounded-full bg-neutral-900 px-10 py-3 text-base text-white transition hover:bg-neutral-700 active:scale-[0.98]"
+            >
+              返回主页
+            </button>
+            <p className="mt-2 text-[15px] text-neutral-500">
+              🎉 复习是记忆的关键，明天继续
+            </p>
+          </section>
+
+          {/* 右侧栏：今日复习的单词 */}
+          <aside className="flex h-[45vh] min-h-0 flex-col border-t border-neutral-200/80 lg:h-auto lg:w-80 lg:border-l lg:border-t-0">
+            <h2 className="shrink-0 border-b border-neutral-200/80 px-5 py-3 text-xs uppercase tracking-widest text-neutral-400">
+              今日复习 · {queue.length}
+            </h2>
+            <ul className="min-h-0 flex-1 overflow-y-auto">
+              {queue.map((word, i) => {
+                const tw = wordOf.get(word);
+                if (!tw) return null;
+                const r = lastRatingToday(state.logs, word);
+                const card = reviveCard(state.cards[word]);
+                return (
+                  <li key={word}>
+                    <button
+                      onClick={() => setSelected(tw)}
+                      className="flex w-full items-center justify-between gap-3 border-b border-neutral-100 px-5 py-2.5 text-left transition hover:bg-neutral-50 active:bg-neutral-100"
+                    >
+                      <span className="min-w-0">
+                        <span
+                          className="block truncate text-lg leading-snug text-foreground"
+                          style={{ fontFamily: SERIF }}
+                        >
+                          {tw.word}
+                        </span>
+                        {tw.phonetic && (
+                          <span className="block truncate text-xs text-neutral-400">
+                            /{tw.phonetic}/
+                            {card && ` · 下次复习 ${dueInDaysText(card)}`}
+                          </span>
+                        )}
+                      </span>
+                      <span className="flex shrink-0 items-center gap-1.5 text-[11px] text-neutral-400">
+                        <span className="text-neutral-300">{i + 1}</span>
+                        <span
+                          className="h-1.5 w-1.5 rounded-full"
+                          style={{
+                            background:
+                              r === "good"
+                                ? "#171717"
+                                : r === "hard"
+                                  ? "#a3a3a3"
+                                  : "transparent",
+                            border:
+                              r === "again" ? "1px solid #a3a3a3" : "none",
+                          }}
+                          title={
+                            r === "good"
+                              ? "认识"
+                              : r === "hard"
+                                ? "模糊"
+                                : r === "again"
+                                  ? "忘记"
+                                  : ""
+                          }
+                        />
+                      </span>
+                    </button>
+                  </li>
+                );
+              })}
+            </ul>
+          </aside>
+        </div>
+
+        {/* 单词详情弹层 */}
+        {selected && (
+          <WordModal word={selected} onClose={() => setSelected(null)} />
+        )}
       </main>
     );
   }
