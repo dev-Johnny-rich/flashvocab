@@ -21,8 +21,8 @@ export const BOOKS: Record<BookId, BookInfo> = {
     id: "cet6",
     label: "六级词汇",
     file: "cet6.json",
-    count: 5407,
-    desc: "大学英语六级 · 高频核心词",
+    count: 1956,
+    desc: "六级核心词 · 四级之上的进阶词汇",
   },
 };
 

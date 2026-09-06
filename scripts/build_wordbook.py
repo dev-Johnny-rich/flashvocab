@@ -128,7 +128,7 @@ def clean(book, name):
             'book': name,
             'source': 'ECDICT (MIT)',
             'count': len(words),
-            'builtAt': '2026-09-05',
+            'builtAt': '2026-09-06',
         },
         'words': words,
     }
@@ -136,6 +136,11 @@ def clean(book, name):
 def main():
     os.makedirs(OUT, exist_ok=True)
     books = load_books(['cet4', 'cet6'])
+    # 六级定位修正（2026-09-06）：剔除与四级重叠的词，
+    # 避免六级词书出现 state/might 等四级基础词，保证难度定位准确
+    books['cet6']['words'] = {
+        w: r for w, r in books['cet6']['words'].items() if w not in books['cet4']['words']
+    }
     for t, name in [('cet4', 'cet4'), ('cet6', 'cet6')]:
         data = clean(books[t], name)
         path = os.path.join(OUT, f'{name}.json')
@@ -143,13 +148,12 @@ def main():
             json.dump(data, f, ensure_ascii=False, separators=(',', ':'))
         print(f'[{name}] 词数: {data["meta"]["count"]}  ->  {path} ({os.path.getsize(path)/1048576:.2f} MB)')
 
-    # 报告
+    # 报告（cet6 已剔除四级重叠词）
     c4 = set(books['cet4']['words'])
     c6 = set(books['cet6']['words'])
-    print(f'\n=== 重叠 ===')
-    print(f'cet4 ∩ cet6: {len(c4 & c6)} 词 (在四级词书中已含)')
-    print(f'纯六级(不含四级): {len(c6 - c4)} 词')
-    print(f'纯四级(不含六级): {len(c4 - c6)} 词')
+    print(f'\n=== 词书定位 ===')
+    print(f'cet4: {len(c4)} 词 (含六级重叠 {len(c4 & set(load_books(["cet6"])["cet6"]["words"]))} 词)')
+    print(f'cet6: {len(c6)} 词 (已剔除四级重叠, 纯六级专属)')
 
     # 音标字符检查
     for t in ['cet4', 'cet6']:
