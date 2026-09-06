@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { loadStudyState } from "@/lib/storage";
 import { isDueCard, reviveCard } from "@/lib/scheduler";
+import DataTools from "@/components/data-tools";
 
 const SERIF =
   'Baskerville, "Songti SC", "Noto Serif SC", "SimSun", Georgia, serif';
@@ -26,6 +27,8 @@ export default function HomeView({
     }
     return n;
   });
+
+  const [tools, setTools] = useState(false);
 
   return (
     <main
@@ -75,13 +78,23 @@ export default function HomeView({
         </div>
       </div>
 
-      {/* 左下角：关于作者（蓝色按钮，贴底，左 100px） */}
+      {/* 左下角：关于作者（蓝色按钮） */}
       <button
         onClick={onAbout}
         className="absolute bottom-5 left-[100px] rounded-lg bg-blue-600 px-5 py-2 text-sm text-white shadow-sm transition hover:bg-blue-500 active:scale-[0.98]"
       >
         关于作者
       </button>
+
+      {/* 右下角：数据备份 */}
+      <button
+        onClick={() => setTools(true)}
+        className="absolute bottom-5 right-5 rounded-lg border border-neutral-900/15 bg-white/70 px-4 py-2 text-sm text-neutral-600 backdrop-blur-sm transition hover:border-neutral-900/40 hover:text-neutral-900 active:scale-[0.98]"
+      >
+        数据备份
+      </button>
+
+      {tools && <DataTools onClose={() => setTools(false)} />}
     </main>
   );
 }
