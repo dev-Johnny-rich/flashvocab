@@ -144,8 +144,9 @@ export default function StudyView({ onBack }: { onBack?: () => void }) {
               返回主页
             </button>
             {!allDone && (
-              <p className="text-xs text-neutral-300">
-                明天继续学习下一批 · 复习功能即将开放
+              <p className="mt-5 text-[15px] text-neutral-500">
+                🎉 今日已学习 {Math.min(daily.done, NEW_PER_DAY)} 个单词，
+                不需要再继续了，练透这 {Math.min(daily.done, NEW_PER_DAY)} 个
               </p>
             )}
           </section>
