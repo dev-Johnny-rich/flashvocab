@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import type { Word, WordBook } from "@/lib/types";
 import TopBar from "@/components/top-bar";
 import SpeakButton from "@/components/speak-button";
+import WordModal from "@/components/word-modal";
 import {
   addLog,
   ensureToday,
@@ -25,6 +26,7 @@ export default function StudyView({ onBack }: { onBack?: () => void }) {
   // 今日会话（进入界面时确保存在；跨天自动开新一批）
   const [daily, setDaily] = useState(() => ensureToday(loadStudyState()).daily);
   const [flipped, setFlipped] = useState(false);
+  const [selected, setSelected] = useState<Word | null>(null);
 
   useEffect(() => {
     let alive = true;
@@ -63,6 +65,23 @@ export default function StudyView({ onBack }: { onBack?: () => void }) {
     return counts;
   }, [state.logs]);
 
+  // 今日学习的单词（右侧栏列表）
+  const todayWords = useMemo(() => {
+    if (!book || !daily) return [];
+    return book.words.slice(daily.start, daily.start + NEW_PER_DAY);
+  }, [book, daily]);
+
+  // 某词今天最后一次评分（列表标记用）
+  const todayRatingOf = (word: string): string | null => {
+    const t = todayStr();
+    const arr = state.logs[word];
+    if (!arr) return null;
+    for (let i = arr.length - 1; i >= 0; i--) {
+      if (arr[i].at.slice(0, 10) === t) return arr[i].r;
+    }
+    return null;
+  };
+
   if (error) {
     return (
       <main className="view-in flex min-h-screen flex-col bg-background">
@@ -89,45 +108,112 @@ export default function StudyView({ onBack }: { onBack?: () => void }) {
   if (finished) {
     const allDone = daily.start + daily.done >= book.words.length;
     return (
-      <main className="view-in flex min-h-screen flex-col bg-background">
-        <TopBar label="四级词汇" onBack={onBack} />
-        <section className="flex flex-1 flex-col items-center justify-center gap-5 px-6 text-center">
-          <h1
-            className="text-5xl font-normal text-foreground sm:text-6xl"
-            style={{ fontFamily: SERIF }}
-          >
-            {allDone ? "词库学完" : "今日完成"}
-          </h1>
-          <p className="text-base text-neutral-500">
-            {allDone
-              ? `已学完四级词汇全部 ${book.words.length} 词`
-              : `今日学习了 ${Math.min(daily.done, NEW_PER_DAY)} 个新单词`}
-          </p>
-          {!allDone && (
-            <div className="mt-2 flex items-center gap-6 text-sm text-neutral-500">
-              <span>
-                认识 <b className="text-foreground">{todayStats.good}</b>
-              </span>
-              <span>
-                模糊 <b className="text-foreground">{todayStats.hard}</b>
-              </span>
-              <span>
-                忘记 <b className="text-foreground">{todayStats.again}</b>
-              </span>
-            </div>
-          )}
-          <button
-            onClick={onBack}
-            className="mt-6 rounded-full bg-neutral-900 px-10 py-3 text-base text-white transition hover:bg-neutral-700 active:scale-[0.98]"
-          >
-            返回主页
-          </button>
-          {!allDone && (
-            <p className="text-xs text-neutral-300">
-              明天继续学习下一批 · 复习功能即将开放
+      <main className="view-in flex h-screen flex-col bg-background">
+        <TopBar label="四级词汇 · 今日已完成" onBack={onBack} />
+        <div className="flex min-h-0 flex-1 flex-col lg:flex-row">
+          {/* 主区：完成信息 */}
+          <section className="flex flex-1 flex-col items-center justify-center gap-5 overflow-y-auto px-6 py-10 text-center">
+            <h1
+              className="text-5xl font-normal text-foreground sm:text-6xl"
+              style={{ fontFamily: SERIF }}
+            >
+              {allDone ? "词库学完" : "今日完成"}
+            </h1>
+            <p className="text-base text-neutral-500">
+              {allDone
+                ? `已学完四级词汇全部 ${book.words.length} 词`
+                : `今日学习了 ${Math.min(daily.done, NEW_PER_DAY)} 个新单词`}
             </p>
-          )}
-        </section>
+            {!allDone && (
+              <div className="mt-2 flex items-center gap-6 text-sm text-neutral-500">
+                <span>
+                  认识 <b className="text-foreground">{todayStats.good}</b>
+                </span>
+                <span>
+                  模糊 <b className="text-foreground">{todayStats.hard}</b>
+                </span>
+                <span>
+                  忘记 <b className="text-foreground">{todayStats.again}</b>
+                </span>
+              </div>
+            )}
+            <button
+              onClick={onBack}
+              className="mt-6 rounded-full bg-neutral-900 px-10 py-3 text-base text-white transition hover:bg-neutral-700 active:scale-[0.98]"
+            >
+              返回主页
+            </button>
+            {!allDone && (
+              <p className="text-xs text-neutral-300">
+                明天继续学习下一批 · 复习功能即将开放
+              </p>
+            )}
+          </section>
+
+          {/* 右侧栏：今日单词，点击弹详情 */}
+          <aside className="flex min-h-0 flex-col border-t border-neutral-200/80 lg:w-80 lg:border-l lg:border-t-0">
+            <h2 className="shrink-0 border-b border-neutral-200/80 px-5 py-3 text-xs uppercase tracking-widest text-neutral-400">
+              今日单词 · {todayWords.length}
+            </h2>
+            <ul className="min-h-0 flex-1 overflow-y-auto">
+              {todayWords.map((tw, i) => {
+                const r = todayRatingOf(tw.word);
+                return (
+                  <li key={tw.word}>
+                    <button
+                      onClick={() => setSelected(tw)}
+                      className="flex w-full items-center justify-between gap-3 border-b border-neutral-100 px-5 py-2.5 text-left transition hover:bg-neutral-50 active:bg-neutral-100"
+                    >
+                      <span className="min-w-0">
+                        <span
+                          className="block truncate text-lg leading-snug text-foreground"
+                          style={{ fontFamily: SERIF }}
+                        >
+                          {tw.word}
+                        </span>
+                        {tw.phonetic && (
+                          <span className="block truncate text-xs text-neutral-400">
+                            /{tw.phonetic}/
+                          </span>
+                        )}
+                      </span>
+                      <span className="flex shrink-0 items-center gap-1.5 text-[11px] text-neutral-400">
+                        <span className="text-neutral-300">{i + 1}</span>
+                        <span
+                          className="h-1.5 w-1.5 rounded-full"
+                          style={{
+                            background:
+                              r === "good"
+                                ? "#171717"
+                                : r === "hard"
+                                  ? "#a3a3a3"
+                                  : "transparent",
+                            border:
+                              r === "again" ? "1px solid #a3a3a3" : "none",
+                          }}
+                          title={
+                            r === "good"
+                              ? "认识"
+                              : r === "hard"
+                                ? "模糊"
+                                : r === "again"
+                                  ? "忘记"
+                                  : ""
+                          }
+                        />
+                      </span>
+                    </button>
+                  </li>
+                );
+              })}
+            </ul>
+          </aside>
+        </div>
+
+        {/* 单词详情弹层 */}
+        {selected && (
+          <WordModal word={selected} onClose={() => setSelected(null)} />
+        )}
       </main>
     );
   }
