@@ -151,7 +151,7 @@ export default function StudyView({ onBack }: { onBack?: () => void }) {
           </section>
 
           {/* 右侧栏：今日单词，点击弹详情 */}
-          <aside className="flex min-h-0 flex-col border-t border-neutral-200/80 lg:w-80 lg:border-l lg:border-t-0">
+          <aside className="flex h-[45vh] min-h-0 flex-col border-t border-neutral-200/80 lg:h-auto lg:w-80 lg:border-l lg:border-t-0">
             <h2 className="shrink-0 border-b border-neutral-200/80 px-5 py-3 text-xs uppercase tracking-widest text-neutral-400">
               今日单词 · {todayWords.length}
             </h2>
