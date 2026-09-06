@@ -114,7 +114,7 @@ export default function StudyView({ onBack }: { onBack?: () => void }) {
                 )}
                 {w.example && (
                   <p
-                    className="mx-auto mt-7 max-w-md text-[15px] italic leading-relaxed text-neutral-500"
+                    className="mx-auto mt-7 max-w-md text-base italic leading-relaxed text-neutral-500"
                     style={{ fontFamily: SERIF }}
                   >
                     {w.example.en}
@@ -153,7 +153,7 @@ export default function StudyView({ onBack }: { onBack?: () => void }) {
               {w.example && (
                 <div className="mx-auto mt-7 max-w-md border-t border-neutral-200/70 pt-5">
                   <p
-                    className="text-[15px] italic leading-relaxed text-neutral-600"
+                    className="text-base italic leading-relaxed text-neutral-600"
                     style={{ fontFamily: SERIF }}
                   >
                     {w.example.en}
