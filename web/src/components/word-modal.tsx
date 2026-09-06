@@ -92,7 +92,9 @@ export default function WordModal({
             >
               {word.example.en}
             </p>
-            <p className="mt-1.5 text-sm text-neutral-400">{word.example.zh}</p>
+            {word.example.zh ? (
+              <p className="mt-1.5 text-sm text-neutral-400">{word.example.zh}</p>
+            ) : null}
           </div>
         )}
       </div>

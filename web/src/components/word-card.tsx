@@ -120,7 +120,9 @@ export default function WordCard({
               >
                 {w.example.en}
               </p>
-              <p className="mt-1.5 text-sm text-neutral-400">{w.example.zh}</p>
+              {w.example.zh ? (
+                  <p className="mt-1.5 text-sm text-neutral-400">{w.example.zh}</p>
+                ) : null}
             </div>
           )}
         </div>

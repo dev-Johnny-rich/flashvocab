@@ -60,7 +60,8 @@ def contains_word(en, word):
 def pick(data, word):
     if not data or 'results' not in data:
         return None
-    best = None
+    best = None          # 带中文翻译的最佳
+    fallback = None      # 纯英文例句兜底（生僻词无中英对照时）
     for s in data['results']:
         en = (s.get('text') or '').strip()
         if not en or not (6 <= len(en) <= 70):
@@ -76,11 +77,15 @@ def pick(data, word):
             if zh:
                 break
         if zh is None:
+            if fallback is None or len(en) < fallback[0]:
+                fallback = (len(en), en)
             continue
         if best is None or len(en) < best[0]:
             best = (len(en), en, zh)
     if best:
         return {'en': best[1], 'zh': best[2]}
+    if fallback:
+        return {'en': fallback[1], 'zh': ''}
     return None
 
 
