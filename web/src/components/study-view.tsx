@@ -1,26 +1,29 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import type { Word, WordBook } from "@/lib/types";
 import TopBar from "@/components/top-bar";
+import SpeakButton from "@/components/speak-button";
 import {
   addLog,
+  ensureToday,
   loadStudyState,
   saveStudyState,
+  todayStr,
   type Rating,
   type StudyState,
 } from "@/lib/storage";
 
 const SERIF =
   'Baskerville, "Songti SC", "Noto Serif SC", "SimSun", Georgia, serif';
+const NEW_PER_DAY = 20; // 每日新词配额
 
 export default function StudyView({ onBack }: { onBack?: () => void }) {
   const [book, setBook] = useState<WordBook | null>(null);
   const [error, setError] = useState(false);
-  const [initial] = useState(() => loadStudyState());
-  const [state, setState] = useState<StudyState>(initial);
-  // 从上次进度继续（cursor = 已完成词数 = 下一个新词的 index）
-  const [idx, setIdx] = useState(initial.cursor);
+  const [state, setState] = useState<StudyState>(() => loadStudyState());
+  // 今日会话（进入界面时确保存在；跨天自动开新一批）
+  const [daily, setDaily] = useState(() => ensureToday(loadStudyState()).daily);
   const [flipped, setFlipped] = useState(false);
 
   useEffect(() => {
@@ -37,6 +40,29 @@ export default function StudyView({ onBack }: { onBack?: () => void }) {
     };
   }, []);
 
+  // 今日完成数（done）；当前词 index = 今日起点 + 已完成数
+  const done = daily?.done ?? 0;
+  const cur = (daily?.start ?? 0) + done;
+
+  const finished = useMemo(() => {
+    if (!book || !daily) return false;
+    const quota = daily.done >= NEW_PER_DAY;
+    const exhausted = daily.start + daily.done >= book.words.length;
+    return quota || exhausted;
+  }, [book, daily]);
+
+  // 今日评分统计（结算页用）：取今天产生的日志
+  const todayStats = useMemo(() => {
+    const t = todayStr();
+    const counts = { again: 0, hard: 0, good: 0 };
+    for (const entries of Object.values(state.logs)) {
+      for (const e of entries) {
+        if (e.at.slice(0, 10) === t) counts[e.r] += 1;
+      }
+    }
+    return counts;
+  }, [state.logs]);
+
   if (error) {
     return (
       <main className="view-in flex min-h-screen flex-col bg-background">
@@ -48,7 +74,7 @@ export default function StudyView({ onBack }: { onBack?: () => void }) {
     );
   }
 
-  if (!book) {
+  if (!book || !daily) {
     return (
       <main className="view-in flex min-h-screen flex-col bg-background">
         <TopBar label="四级词汇" onBack={onBack} />
@@ -59,17 +85,64 @@ export default function StudyView({ onBack }: { onBack?: () => void }) {
     );
   }
 
-  const w = book.words[idx % book.words.length];
-  const doneCount = Object.keys(state.logs).length;
+  // —— 结算页（今日配额完成或词库学完）——
+  if (finished) {
+    const allDone = daily.start + daily.done >= book.words.length;
+    return (
+      <main className="view-in flex min-h-screen flex-col bg-background">
+        <TopBar label="四级词汇" onBack={onBack} />
+        <section className="flex flex-1 flex-col items-center justify-center gap-5 px-6 text-center">
+          <h1
+            className="text-5xl font-normal text-foreground sm:text-6xl"
+            style={{ fontFamily: SERIF }}
+          >
+            {allDone ? "词库学完" : "今日完成"}
+          </h1>
+          <p className="text-base text-neutral-500">
+            {allDone
+              ? `已学完四级词汇全部 ${book.words.length} 词`
+              : `今日学习了 ${Math.min(daily.done, NEW_PER_DAY)} 个新单词`}
+          </p>
+          {!allDone && (
+            <div className="mt-2 flex items-center gap-6 text-sm text-neutral-500">
+              <span>
+                认识 <b className="text-foreground">{todayStats.good}</b>
+              </span>
+              <span>
+                模糊 <b className="text-foreground">{todayStats.hard}</b>
+              </span>
+              <span>
+                忘记 <b className="text-foreground">{todayStats.again}</b>
+              </span>
+            </div>
+          )}
+          <button
+            onClick={onBack}
+            className="mt-6 rounded-full bg-neutral-900 px-10 py-3 text-base text-white transition hover:bg-neutral-700 active:scale-[0.98]"
+          >
+            返回主页
+          </button>
+          {!allDone && (
+            <p className="text-xs text-neutral-300">
+              明天继续学习下一批 · 复习功能即将开放
+            </p>
+          )}
+        </section>
+      </main>
+    );
+  }
 
+  const w: Word = book.words[cur];
   const rate = (rating: Rating) => {
-    // 闭包持有本次渲染的最新 state/idx，直接计算新状态一次提交
-    const nextIdx = idx + 1;
     const next = addLog(state, w.word, rating);
-    const saved: StudyState = { ...next, cursor: nextIdx };
+    const saved: StudyState = {
+      ...next,
+      cursor: state.cursor + 1,
+      daily: { ...daily, done: daily.done + 1 },
+    };
     saveStudyState(saved);
     setState(saved);
-    setIdx(nextIdx);
+    setDaily(saved.daily!);
     setFlipped(false);
   };
 
@@ -77,7 +150,10 @@ export default function StudyView({ onBack }: { onBack?: () => void }) {
 
   return (
     <main className="view-in flex min-h-screen flex-col bg-background">
-      <TopBar label={`四级词汇 · 已学 ${doneCount} 词`} onBack={onBack} />
+      <TopBar
+        label={`今日 ${Math.min(done, NEW_PER_DAY)}/${NEW_PER_DAY} · 四级词汇`}
+        onBack={onBack}
+      />
 
       {/* 词卡 + 操作区 */}
       <section className="flex flex-1 flex-col items-center justify-center gap-7 p-6">
@@ -98,17 +174,20 @@ export default function StudyView({ onBack }: { onBack?: () => void }) {
             className={`flashcard-inner max-h-[62vh] ${flipped ? "flipped" : ""}`}
           >
             {/* 正面：单词 */}
-            <div className="face max-h-[62vh] overflow-y-auto rounded-2xl border border-neutral-200/80 bg-white px-8 py-14 text-center shadow-[0_1px_2px_rgba(0,0,0,0.03)] sm:py-20">
-              <div key={idx} className="word-enter">
-                <h1
-                  className="break-words text-[clamp(3rem,9vw,5.5rem)] font-normal leading-tight text-foreground"
-                  style={{ fontFamily: SERIF }}
-                >
-                  {w.word}
-                </h1>
+            <div className="face max-h-[62vh] overflow-y-auto rounded-2xl border border-neutral-200/80 bg-white px-8 py-14 text-center shadow-[0_1px_2px_rgba(0,0,0,0.03)] sm:py-16">
+              <div key={cur} className="word-enter">
+                <div className="flex items-center justify-center gap-3">
+                  <h1
+                    className="break-words text-[clamp(3rem,9vw,5.5rem)] font-normal leading-tight text-foreground"
+                    style={{ fontFamily: SERIF }}
+                  >
+                    {w.word}
+                  </h1>
+                  <SpeakButton word={w.word} />
+                </div>
                 {w.phonetic && (
                   <p
-                    className="mt-5 text-xl text-neutral-400"
+                    className="mt-4 text-xl text-neutral-400"
                     style={{ fontFamily: SERIF }}
                   >
                     /{w.phonetic}/
@@ -127,12 +206,15 @@ export default function StudyView({ onBack }: { onBack?: () => void }) {
 
             {/* 背面：释义 */}
             <div className="face face-back max-h-[62vh] overflow-y-auto rounded-2xl border border-neutral-200/80 bg-white px-6 py-10 text-left shadow-[0_1px_2px_rgba(0,0,0,0.03)] sm:px-10 sm:py-12">
-              <p
-                className="break-words text-center text-3xl font-normal leading-tight text-foreground sm:text-4xl"
-                style={{ fontFamily: SERIF }}
-              >
-                {w.word}
-              </p>
+              <div className="flex items-center justify-center gap-2">
+                <p
+                  className="break-words text-center text-3xl font-normal leading-tight text-foreground sm:text-4xl"
+                  style={{ fontFamily: SERIF }}
+                >
+                  {w.word}
+                </p>
+                <SpeakButton word={w.word} size="sm" />
+              </div>
               {w.phonetic && (
                 <p
                   className="mt-1.5 text-center text-sm text-neutral-400"
