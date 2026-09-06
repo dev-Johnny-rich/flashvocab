@@ -1,0 +1,6 @@
+node_modules/
+.next/
+out/
+.DS_Store
+# ECDICT 源数据 65MB 不入库（可随时重新 clone）
+data/ecdict/
