@@ -61,6 +61,23 @@ export default function Home() {
           style={{ animationDuration: `${TOTAL}ms` }}
         />
       </div>
+
+      {/* 正在加载… 三点闪烁，与进度条同步退场 */}
+      <p
+        className="intro-fade mt-4 flex items-center text-sm text-neutral-400"
+        style={{ animationDelay: `${TOTAL + 300}ms` }}
+      >
+        <span>正在加载</span>
+        {[0, 1, 2].map((i) => (
+          <span
+            key={i}
+            className="intro-dot"
+            style={{ animationDelay: `${i * 0.2}s` }}
+          >
+            .
+          </span>
+        ))}
+      </p>
     </main>
   );
 }

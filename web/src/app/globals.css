@@ -62,6 +62,21 @@ body {
   }
 }
 
+/* 加载提示三点依次闪烁 */
+.intro-dot {
+  animation: dot-blink 1.2s ease-in-out infinite;
+}
+
+@keyframes dot-blink {
+  0%,
+  100% {
+    opacity: 0.15;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .intro-char {
     animation: none;
@@ -73,5 +88,9 @@ body {
   .intro-fade {
     animation: none;
     opacity: 0;
+  }
+  .intro-dot {
+    animation: none;
+    opacity: 0.5;
   }
 }
