@@ -13,6 +13,7 @@ export interface Word {
   collins: number | null;
   oxford: boolean;
   frq: number | null;
+  example?: { en: string; zh: string } | null;
 }
 
 export interface WordBook {

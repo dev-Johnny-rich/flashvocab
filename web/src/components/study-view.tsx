@@ -112,6 +112,14 @@ export default function StudyView({ onBack }: { onBack?: () => void }) {
                     {w.phonetic}
                   </p>
                 )}
+                {w.example && (
+                  <p
+                    className="mx-auto mt-7 max-w-md text-[15px] italic leading-relaxed text-neutral-500"
+                    style={{ fontFamily: SERIF }}
+                  >
+                    {w.example.en}
+                  </p>
+                )}
               </div>
             </div>
 
@@ -141,6 +149,20 @@ export default function StudyView({ onBack }: { onBack?: () => void }) {
                   </li>
                 ))}
               </ul>
+
+              {w.example && (
+                <div className="mx-auto mt-7 max-w-md border-t border-neutral-200/70 pt-5">
+                  <p
+                    className="text-[15px] italic leading-relaxed text-neutral-600"
+                    style={{ fontFamily: SERIF }}
+                  >
+                    {w.example.en}
+                  </p>
+                  <p className="mt-1.5 text-sm text-neutral-400">
+                    {w.example.zh}
+                  </p>
+                </div>
+              )}
             </div>
           </div>
         </div>
