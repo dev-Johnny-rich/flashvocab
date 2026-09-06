@@ -10,9 +10,11 @@ const SERIF =
 export default function HomeView({
   onLearn,
   onReview,
+  onAbout,
 }: {
   onLearn: () => void;
   onReview: () => void;
+  onAbout: () => void;
 }) {
   // 待复习数（进入主页时按到期卡片计算）
   const [due] = useState(() => {
@@ -72,6 +74,14 @@ export default function HomeView({
           </button>
         </div>
       </div>
+
+      {/* 左下角：关于作者 */}
+      <button
+        onClick={onAbout}
+        className="absolute bottom-5 left-6 z-10 text-sm text-neutral-600/80 transition hover:text-neutral-900"
+      >
+        关于作者
+      </button>
     </main>
   );
 }

@@ -5,8 +5,9 @@ import Intro, { INTRO_END_MS } from "@/components/intro";
 import HomeView from "@/components/home-view";
 import StudyView from "@/components/study-view";
 import ReviewView from "@/components/review-view";
+import AboutView from "@/components/about-view";
 
-type Phase = "intro" | "home" | "study" | "review";
+type Phase = "intro" | "home" | "study" | "review" | "about";
 
 export default function Home() {
   const [phase, setPhase] = useState<Phase>("intro");
@@ -22,8 +23,14 @@ export default function Home() {
   if (phase === "intro") return <Intro />;
   if (phase === "home")
     return (
-      <HomeView onLearn={goStudy} onReview={() => setPhase("review")} />
+      <HomeView
+        onLearn={goStudy}
+        onReview={() => setPhase("review")}
+        onAbout={() => setPhase("about")}
+      />
     );
   if (phase === "study") return <StudyView onBack={goHome} />;
-  return <ReviewView onBack={goHome} onLearn={goStudy} />;
+  if (phase === "review")
+    return <ReviewView onBack={goHome} onLearn={goStudy} />;
+  return <AboutView onBack={goHome} />;
 }
