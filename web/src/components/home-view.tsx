@@ -78,7 +78,7 @@ export default function HomeView({
       {/* 左下角：关于作者（蓝色按钮，贴底，左 100px） */}
       <button
         onClick={onAbout}
-        className="absolute bottom-0 left-[100px] rounded-t-lg bg-blue-600 px-5 py-2 text-sm text-white shadow-sm transition hover:bg-blue-500 active:scale-[0.98]"
+        className="absolute bottom-5 left-[100px] rounded-lg bg-blue-600 px-5 py-2 text-sm text-white shadow-sm transition hover:bg-blue-500 active:scale-[0.98]"
       >
         关于作者
       </button>
