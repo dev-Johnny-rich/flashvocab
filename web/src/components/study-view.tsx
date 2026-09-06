@@ -109,7 +109,7 @@ export default function StudyView({ onBack }: { onBack?: () => void }) {
                     className="mt-5 text-xl text-neutral-400"
                     style={{ fontFamily: SERIF }}
                   >
-                    {w.phonetic}
+                    /{w.phonetic}/
                   </p>
                 )}
                 {w.example && (
@@ -136,7 +136,7 @@ export default function StudyView({ onBack }: { onBack?: () => void }) {
                   className="mt-1.5 text-center text-sm text-neutral-400"
                   style={{ fontFamily: SERIF }}
                 >
-                  {w.phonetic}
+                  /{w.phonetic}/
                 </p>
               )}
               <ul className="mx-auto mt-6 max-w-md space-y-3">
