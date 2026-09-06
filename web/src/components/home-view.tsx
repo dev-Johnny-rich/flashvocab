@@ -91,7 +91,7 @@ export default function HomeView({
             )}
           </button>
         </div>
-        <p className="mt-3 text-[16px] text-pink-500">
+        <p className="mt-3 text-[16px] text-yellow-500">
           当前词书：{BOOKS[currentBook].label}
         </p>
       </div>
