@@ -9,6 +9,7 @@ import { saveCurrentBook } from "@/lib/storage";
 import WordCard from "@/components/word-card";
 import WordModal from "@/components/word-modal";
 import SpellingView from "@/components/spelling-view";
+import RandomQuiz from "@/components/random-quiz";
 import {
   addLog,
   lastRatingToday,
@@ -51,6 +52,7 @@ export default function ReviewView({
   const [picker, setPicker] = useState(false);
   const [selected, setSelected] = useState<Word | null>(null);
   const [spelling, setSpelling] = useState(false);
+  const [quiz, setQuiz] = useState(false);
 
   useEffect(() => {
     let alive = true;
@@ -115,6 +117,9 @@ export default function ReviewView({
 
   // —— 空态：没学过 / 今日无到期 ——
   if (!session || queue.length === 0) {
+    if (quiz) {
+      return <RandomQuiz onExit={() => setQuiz(false)} />;
+    }
     return (
       <main className="view-in flex min-h-screen flex-col bg-background">
         <TopBar label={`复习 · ${BOOKS[bookId].label}`} onBack={onBack} />
@@ -142,6 +147,15 @@ export default function ReviewView({
               返回主页
             </button>
           )}
+          <button
+            onClick={() => setQuiz(true)}
+            className="rounded-full border border-neutral-300 bg-white px-8 py-3 text-base text-neutral-700 transition hover:border-neutral-900 hover:text-neutral-900 active:scale-[0.98]"
+          >
+            随机单词检测
+          </button>
+          <p className="-mt-2 text-xs text-neutral-300">
+            从四级 / 六级词库随机抽词，随手自测（不记录进度）
+          </p>
         </section>
       </main>
     );
