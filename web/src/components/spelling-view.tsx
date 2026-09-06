@@ -10,7 +10,7 @@ const SERIF =
 type Phase = "idle" | "ok" | "fail";
 
 // 复习完成后的单词默写：只显示中文释义，逐字母填空，
-// 全部拼写完成后再整体检查（拼错给两次机会，仍错自动补全）
+// 全部拼写完成后再整体检查（拼错仅一次机会，两次都错直接展示正确单词）
 export default function SpellingView({
   words,
   onClose,
@@ -58,10 +58,10 @@ export default function SpellingView({
       setPhase("ok");
       return;
     }
-    // 拼写错误：两次机会（共 3 次尝试），仍错自动补全
+    // 拼写错误：仅一次机会（共 2 次尝试），两次都错直接显示单词
     const m = mistakes + 1;
     setMistakes(m);
-    if (m >= 3) {
+    if (m >= 2) {
       setPhase("fail");
       return;
     }
@@ -76,7 +76,7 @@ export default function SpellingView({
       return () => window.clearTimeout(t);
     }
     if (phase === "fail") {
-      const t = window.setTimeout(() => next("fail"), 1100);
+      const t = window.setTimeout(() => next("fail"), 1600);
       return () => window.clearTimeout(t);
     }
   }, [phase, next]);
@@ -123,7 +123,7 @@ export default function SpellingView({
             默写完成
           </h1>
           <p className="text-base text-neutral-500">
-            拼写正确 <b className="text-foreground">{stats.ok}</b> 词 · 自动补全{" "}
+            拼写正确 <b className="text-foreground">{stats.ok}</b> 词 · 未拼出{" "}
             <b className="text-foreground">{stats.fail}</b> 词
           </p>
           <button
@@ -169,47 +169,60 @@ export default function SpellingView({
           </ul>
         </div>
 
-        {/* 拼写槽 */}
-        <div
-          className="flex max-w-full flex-wrap items-end justify-center gap-y-3"
-          onClick={() => inputRef.current?.focus()}
-        >
-          {chars.map((ch, i) => {
-            const isLetter = /[a-z]/i.test(ch);
-            if (isLetter) {
-              letterIdx += 1;
-              const filled = typed.length > letterIdx;
-              const current =
-                typed.length === letterIdx && phase === "idle" && !lock;
-              const revealed = phase === "fail"; // 补全时全部显示
-              const shown = filled ? typed[letterIdx] : revealed ? ch.toLowerCase() : "";
+        {/* 拼写槽（失败时替换为正确单词展示） */}
+        {phase === "fail" ? (
+          <div className="word-enter text-center">
+            <p className="text-xs uppercase tracking-widest text-neutral-300">
+              正确拼写
+            </p>
+            <p
+              className="mt-3 text-5xl font-normal text-foreground sm:text-6xl"
+              style={{ fontFamily: SERIF }}
+            >
+              {w.word}
+            </p>
+          </div>
+        ) : (
+          <div
+            className="flex max-w-full flex-wrap items-end justify-center gap-y-3"
+            onClick={() => inputRef.current?.focus()}
+          >
+            {chars.map((ch, i) => {
+              const isLetter = /[a-z]/i.test(ch);
+              if (isLetter) {
+                letterIdx += 1;
+                const filled = typed.length > letterIdx;
+                const current =
+                  typed.length === letterIdx && phase === "idle" && !lock;
+                const shown = filled ? typed[letterIdx] : "";
+                return (
+                  <span
+                    key={i}
+                    className={`mx-[3px] inline-flex h-11 w-8 items-end justify-center border-b-2 pb-1 text-3xl ${
+                      filled
+                        ? "border-neutral-900 text-foreground"
+                        : current
+                          ? "border-neutral-900 bg-neutral-100"
+                          : "border-neutral-300"
+                    }`}
+                    style={{ fontFamily: SERIF }}
+                  >
+                    {shown}
+                  </span>
+                );
+              }
+              // 非字母字符（连字符/撇号等）：预显示，无需输入
               return (
                 <span
                   key={i}
-                  className={`mx-[3px] inline-flex h-11 w-8 items-end justify-center border-b-2 pb-1 text-3xl ${
-                    revealed || filled
-                      ? "border-neutral-900 text-foreground"
-                      : current
-                        ? "border-neutral-900 bg-neutral-100"
-                        : "border-neutral-300"
-                  }`}
-                  style={{ fontFamily: SERIF }}
+                  className="mx-[2px] inline-block pb-1 text-2xl text-neutral-400"
                 >
-                  {shown}
+                  {ch}
                 </span>
               );
-            }
-            // 非字母字符（连字符/撇号等）：预显示，无需输入
-            return (
-              <span
-                key={i}
-                className="mx-[2px] inline-block pb-1 text-2xl text-neutral-400"
-              >
-                {ch}
-              </span>
-            );
-          })}
-        </div>
+            })}
+          </div>
+        )}
 
         {/* 状态提示 */}
         <div className="flex h-8 items-center justify-center">
@@ -225,14 +238,14 @@ export default function SpellingView({
           )}
           {phase === "idle" && mistakes > 0 && (
             <p className="text-sm text-red-500">
-              拼写错误，还剩 {3 - mistakes} 次机会
+              拼写错误，还剩 {2 - mistakes} 次机会
             </p>
           )}
           {phase === "ok" && (
             <p className="text-sm text-neutral-600">✓ 拼写正确</p>
           )}
           {phase === "fail" && (
-            <p className="text-sm text-neutral-500">已自动补全，下一个</p>
+            <p className="text-sm text-neutral-500">记住这个拼写，下一个</p>
           )}
         </div>
       </section>
