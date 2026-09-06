@@ -107,6 +107,7 @@ export default function StudyView({ onBack }: { onBack?: () => void }) {
   // —— 结算页（今日配额完成或词库学完）——
   if (finished) {
     const allDone = daily.start + daily.done >= book.words.length;
+    const n = Math.min(daily.done, NEW_PER_DAY);
     return (
       <main className="view-in flex h-screen flex-col bg-background">
         <TopBar label="四级词汇 · 今日已完成" onBack={onBack} />
@@ -144,10 +145,14 @@ export default function StudyView({ onBack }: { onBack?: () => void }) {
               返回主页
             </button>
             {!allDone && (
-              <p className="mt-5 text-[15px] text-neutral-500">
-                🎉 今日已学习 {Math.min(daily.done, NEW_PER_DAY)} 个单词，
-                不需要再继续了，练透这 {Math.min(daily.done, NEW_PER_DAY)} 个
-              </p>
+              <div className="mt-5 text-[15px] text-neutral-500">
+                <p>
+                  🎉 今日已学习 {n} 个单词，不需要再继续了，练透这 {n} 个
+                </p>
+                <p className="mt-1.5 text-sm text-neutral-400">
+                  使用这 {n} 个单词去造句，可让 AI 帮你纠正
+                </p>
+              </div>
             )}
           </section>
 
