@@ -46,7 +46,7 @@ export default function ReviewView({
 
   useEffect(() => {
     let alive = true;
-    fetch("/data/cet4.json")
+    fetch("data/cet4.json")
       .then((r) => {
         if (!r.ok) throw new Error(String(r.status));
         return r.json();

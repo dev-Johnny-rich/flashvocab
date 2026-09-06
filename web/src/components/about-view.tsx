@@ -23,7 +23,7 @@ export default function AboutView({ onBack }: { onBack?: () => void }) {
 
   useEffect(() => {
     let alive = true;
-    fetch("/data/about.json")
+    fetch("data/about.json")
       .then((r) => {
         if (!r.ok) throw new Error(String(r.status));
         return r.json();

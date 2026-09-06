@@ -13,16 +13,19 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
+// 子路径部署（GitHub Pages /flashvocab/）时由 CI 注入 BASE_PATH
+const BP = process.env.BASE_PATH ?? "";
+
 export const metadata: Metadata = {
   title: "词闪记 Flashvocab · 四六级单词",
   description: "每天 20 个新词 · 间隔重复科学复习 · 四六级词汇轻松记",
-  manifest: "/manifest.webmanifest",
+  manifest: `${BP}/manifest.webmanifest`,
   icons: {
     icon: [
-      { url: "/icons/icon-192.png", sizes: "192x192", type: "image/png" },
-      { url: "/icons/icon-512.png", sizes: "512x512", type: "image/png" },
+      { url: `${BP}/icons/icon-192.png`, sizes: "192x192", type: "image/png" },
+      { url: `${BP}/icons/icon-512.png`, sizes: "512x512", type: "image/png" },
     ],
-    apple: "/icons/apple-touch-icon.png",
+    apple: `${BP}/icons/apple-touch-icon.png`,
   },
   appleWebApp: {
     capable: true,

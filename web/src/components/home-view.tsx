@@ -39,7 +39,7 @@ export default function HomeView({
   return (
     <main
       className="view-in relative min-h-screen overflow-hidden bg-cover bg-center"
-      style={{ backgroundImage: "url(/images/flashvocab-bg.jpg)" }}
+      style={{ backgroundImage: "url(images/flashvocab-bg.jpg)" }}
     >
       {/* 顶部欢迎滚动条 */}
       <div className="marquee absolute inset-x-0 top-0 z-10 border-b border-black/5 bg-white/60 py-2 backdrop-blur-sm">

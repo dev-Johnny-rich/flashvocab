@@ -21,7 +21,7 @@ function playMp3(url: string): Promise<boolean> {
 }
 
 async function tryLocalAudio(word: string): Promise<boolean> {
-  const url = `/audio/${encodeURIComponent(word)}.mp3`;
+  const url = `audio/${encodeURIComponent(word)}.mp3`;
   if (mp3Cache.has(word)) {
     return mp3Cache.get(word) ? playMp3(url) : false;
   }

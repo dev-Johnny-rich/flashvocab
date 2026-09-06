@@ -14,7 +14,7 @@ export default function SwRegister() {
     if (!("caches" in window)) return;
 
     navigator.serviceWorker
-      .register("/sw.js")
+      .register("./sw.js")
       .then(() => navigator.serviceWorker.ready)
       .then(() => {
         // 收集本次加载的同源静态资源（JS chunks / CSS / 字体 / 数据）

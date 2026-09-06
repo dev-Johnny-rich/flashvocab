@@ -1,14 +1,14 @@
-/* 词闪记 Flashvocab — Service Worker（离线可用）
+/* 词闪记 Flashvocab — Service Worker（离线可用，路径相对化兼容子路径部署）
    策略：安装时预缓存核心资源；运行时同源 GET 走 stale-while-revalidate；
    音频 mp3 不变，走 cache-first */
 
 const CORE = [
-  "/",
-  "/manifest.webmanifest",
-  "/icons/icon-192.png",
-  "/icons/icon-512.png",
-  "/data/cet4.json",
-  "/images/flashvocab-bg.jpg",
+  "./",
+  "./manifest.webmanifest",
+  "./icons/icon-192.png",
+  "./icons/icon-512.png",
+  "./data/cet4.json",
+  "./images/flashvocab-bg.jpg",
 ];
 const CORE_CACHE = "flashvocab-core-v1";
 const RUNTIME_CACHE = "flashvocab-runtime-v1";
@@ -45,7 +45,7 @@ self.addEventListener("fetch", (event) => {
   if (url.origin !== self.location.origin) return;
 
   // 音频：cache-first（文件永久不变）
-  if (url.pathname.startsWith("/audio/")) {
+  if (url.pathname.includes("/audio/")) {
     event.respondWith(
       caches.match(req).then(
         (hit) =>
