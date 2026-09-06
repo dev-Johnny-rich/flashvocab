@@ -3,16 +3,24 @@
 import { useEffect, useState } from "react";
 import type { Word, WordBook } from "@/lib/types";
 import TopBar from "@/components/top-bar";
+import {
+  addLog,
+  loadStudyState,
+  saveStudyState,
+  type Rating,
+  type StudyState,
+} from "@/lib/storage";
 
 const SERIF =
   'Baskerville, "Songti SC", "Noto Serif SC", "SimSun", Georgia, serif';
 
-type Rating = "again" | "hard" | "good";
-
 export default function StudyView({ onBack }: { onBack?: () => void }) {
   const [book, setBook] = useState<WordBook | null>(null);
   const [error, setError] = useState(false);
-  const [idx, setIdx] = useState(0);
+  const [initial] = useState(() => loadStudyState());
+  const [state, setState] = useState<StudyState>(initial);
+  // 从上次进度继续（cursor = 已完成词数 = 下一个新词的 index）
+  const [idx, setIdx] = useState(initial.cursor);
   const [flipped, setFlipped] = useState(false);
 
   useEffect(() => {
@@ -52,15 +60,22 @@ export default function StudyView({ onBack }: { onBack?: () => void }) {
   }
 
   const w = book.words[idx % book.words.length];
+  const doneCount = Object.keys(state.logs).length;
 
-  const rate = (_r: Rating) => {
-    setIdx((i) => i + 1);
+  const rate = (rating: Rating) => {
+    // 闭包持有本次渲染的最新 state/idx，直接计算新状态一次提交
+    const nextIdx = idx + 1;
+    const next = addLog(state, w.word, rating);
+    const saved: StudyState = { ...next, cursor: nextIdx };
+    saveStudyState(saved);
+    setState(saved);
+    setIdx(nextIdx);
     setFlipped(false);
   };
 
   return (
     <main className="view-in flex min-h-screen flex-col bg-background">
-      <TopBar label={`四级词汇 · ${idx + 1} / ${book.words.length}`} onBack={onBack} />
+      <TopBar label={`四级词汇 · 已学 ${doneCount} 词`} onBack={onBack} />
 
       {/* 词卡 + 操作区 */}
       <section className="flex flex-1 flex-col items-center justify-center gap-7 p-6">
