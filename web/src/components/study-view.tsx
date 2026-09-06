@@ -7,9 +7,13 @@ import TopBar from "@/components/top-bar";
 const SERIF =
   'Baskerville, "Songti SC", "Noto Serif SC", "SimSun", Georgia, serif';
 
+type Rating = "again" | "hard" | "good";
+
 export default function StudyView({ onBack }: { onBack?: () => void }) {
   const [book, setBook] = useState<WordBook | null>(null);
   const [error, setError] = useState(false);
+  const [idx, setIdx] = useState(0);
+  const [flipped, setFlipped] = useState(false);
 
   useEffect(() => {
     let alive = true;
@@ -25,41 +29,139 @@ export default function StudyView({ onBack }: { onBack?: () => void }) {
     };
   }, []);
 
-  const w: Word | undefined = book?.words[0];
+  if (error) {
+    return (
+      <main className="view-in flex min-h-screen flex-col bg-background">
+        <TopBar label="四级词汇" onBack={onBack} />
+        <section className="flex flex-1 items-center justify-center">
+          <p className="text-sm text-neutral-400">词书加载失败，请刷新重试</p>
+        </section>
+      </main>
+    );
+  }
+
+  if (!book) {
+    return (
+      <main className="view-in flex min-h-screen flex-col bg-background">
+        <TopBar label="四级词汇" onBack={onBack} />
+        <section className="flex flex-1 items-center justify-center">
+          <p className="text-sm text-neutral-400">加载词库中…</p>
+        </section>
+      </main>
+    );
+  }
+
+  const w = book.words[idx % book.words.length];
+
+  const rate = (_r: Rating) => {
+    setIdx((i) => i + 1);
+    setFlipped(false);
+  };
 
   return (
     <main className="view-in flex min-h-screen flex-col bg-background">
-      <TopBar label="四级词汇 · 共 3849 词" onBack={onBack} />
+      <TopBar label={`四级词汇 · ${idx + 1} / ${book.words.length}`} onBack={onBack} />
 
-      {/* 词卡区域 */}
-      <section className="flex flex-1 items-center justify-center p-6">
-        {error ? (
-          <p className="text-sm text-neutral-400">词书加载失败，请刷新重试</p>
-        ) : !w ? (
-          <p className="text-sm text-neutral-400">加载词库中…</p>
-        ) : (
-          <div className="w-full max-w-2xl rounded-2xl border border-neutral-200/80 bg-white px-8 py-20 text-center shadow-[0_1px_2px_rgba(0,0,0,0.03)] sm:py-28">
-            <h1
-              className="break-words text-[clamp(3rem,9vw,5.5rem)] font-normal leading-tight text-foreground"
-              style={{ fontFamily: SERIF }}
-            >
-              {w.word}
-            </h1>
-            {w.phonetic && (
+      {/* 词卡 + 操作区 */}
+      <section className="flex flex-1 flex-col items-center justify-center gap-7 p-6">
+        {/* 卡片 */}
+        <div
+          className="flashcard w-full max-w-2xl cursor-pointer select-none"
+          onClick={() => setFlipped(true)}
+          role="button"
+          tabIndex={0}
+          onKeyDown={(e) => {
+            if (!flipped && (e.key === "Enter" || e.key === " ")) {
+              e.preventDefault();
+              setFlipped(true);
+            }
+          }}
+        >
+          <div
+            className={`flashcard-inner max-h-[62vh] ${flipped ? "flipped" : ""}`}
+          >
+            {/* 正面：单词 */}
+            <div className="face max-h-[62vh] overflow-y-auto rounded-2xl border border-neutral-200/80 bg-white px-8 py-14 text-center shadow-[0_1px_2px_rgba(0,0,0,0.03)] sm:py-20">
+              <div key={idx} className="word-enter">
+                <h1
+                  className="break-words text-[clamp(3rem,9vw,5.5rem)] font-normal leading-tight text-foreground"
+                  style={{ fontFamily: SERIF }}
+                >
+                  {w.word}
+                </h1>
+                {w.phonetic && (
+                  <p
+                    className="mt-5 text-xl text-neutral-400"
+                    style={{ fontFamily: SERIF }}
+                  >
+                    {w.phonetic}
+                  </p>
+                )}
+              </div>
+            </div>
+
+            {/* 背面：释义 */}
+            <div className="face face-back max-h-[62vh] overflow-y-auto rounded-2xl border border-neutral-200/80 bg-white px-6 py-10 text-left shadow-[0_1px_2px_rgba(0,0,0,0.03)] sm:px-10 sm:py-12">
               <p
-                className="mt-5 text-xl text-neutral-400"
+                className="break-words text-center text-3xl font-normal leading-tight text-foreground sm:text-4xl"
                 style={{ fontFamily: SERIF }}
               >
-                {w.phonetic}
+                {w.word}
               </p>
-            )}
-            <p className="mt-8 text-xs tracking-wider text-neutral-300">
-              {[w.oxford && "牛津3000", w.collins && `柯林斯${w.collins}星`]
-                .filter(Boolean)
-                .join(" · ") || "\u00a0"}
-            </p>
+              {w.phonetic && (
+                <p
+                  className="mt-1.5 text-center text-sm text-neutral-400"
+                  style={{ fontFamily: SERIF }}
+                >
+                  {w.phonetic}
+                </p>
+              )}
+              <ul className="mx-auto mt-6 max-w-md space-y-3">
+                {w.senses.map((s, i) => (
+                  <li key={i} className="flex gap-2.5 text-[15px] leading-relaxed">
+                    <span className="shrink-0 pt-px text-neutral-400">
+                      {s.pos ? `${s.pos}.` : s.domain ? `[${s.domain}]` : "·"}
+                    </span>
+                    <span className="text-foreground/90">{s.text}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
           </div>
-        )}
+        </div>
+
+        {/* 操作区：未翻卡时提示，翻卡后三档 */}
+        <div className="flex h-16 items-center justify-center">
+          {!flipped ? (
+            <p
+              className="text-sm italic text-neutral-400"
+              style={{ fontFamily: SERIF }}
+            >
+              点击卡片，查看释义
+            </p>
+          ) : (
+            <div className="word-enter flex items-center gap-3">
+              <button
+                onClick={() => rate("again")}
+                className="w-28 rounded-full border border-neutral-300 bg-white py-3 text-base text-neutral-700 transition hover:bg-neutral-100 active:scale-[0.97]"
+              >
+                忘记
+              </button>
+              <button
+                onClick={() => rate("hard")}
+                className="w-28 rounded-full bg-neutral-200 py-3 text-base text-neutral-800 transition hover:bg-neutral-300 active:scale-[0.97]"
+              >
+                模糊
+              </button>
+              <button
+                onClick={() => rate("good")}
+                className="w-28 rounded-full bg-neutral-900 py-3 text-base text-white transition hover:bg-neutral-700 active:scale-[0.97]"
+              >
+                认识
+              </button>
+            </div>
+          )}
+        </div>
       </section>
     </main>
   );

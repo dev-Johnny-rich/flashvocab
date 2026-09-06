@@ -81,6 +81,47 @@ body {
   }
 }
 
+/* —— 词卡 3D 翻转 —— */
+.flashcard {
+  perspective: 1600px;
+}
+
+.flashcard-inner {
+  display: grid;
+  transform-style: preserve-3d;
+  transition: transform 0.55s cubic-bezier(0.4, 0.2, 0.2, 1);
+}
+
+.flashcard-inner.flipped {
+  transform: rotateY(180deg);
+}
+
+.face {
+  grid-area: 1 / 1;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+}
+
+.face-back {
+  transform: rotateY(180deg);
+}
+
+/* 换词时正面内容淡入上移 */
+.word-enter {
+  animation: word-in 0.35s ease both;
+}
+
+@keyframes word-in {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
 @keyframes dot-blink {
   0%,
   100% {
@@ -106,5 +147,11 @@ body {
   .intro-dot {
     animation: none;
     opacity: 0.5;
+  }
+  .flashcard-inner {
+    transition: none;
+  }
+  .word-enter {
+    animation: none;
   }
 }
