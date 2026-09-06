@@ -90,7 +90,7 @@ body {
 .marquee-track {
   display: inline-flex;
   width: max-content;
-  animation: marquee-scroll 26s linear infinite;
+  animation: marquee-scroll 16s linear infinite;
 }
 
 .marquee:hover .marquee-track {
