@@ -37,7 +37,14 @@ export default function Home() {
       />
     );
   if (phase === "study")
-    return <StudyView key={book} bookId={book} onBack={goHome} />;
+    return (
+      <StudyView
+        key={book}
+        bookId={book}
+        onBack={goHome}
+        onSwitchBook={setBook}
+      />
+    );
   if (phase === "review")
     return (
       <ReviewView
@@ -45,6 +52,7 @@ export default function Home() {
         bookId={book}
         onBack={goHome}
         onLearn={() => setPhase("study")}
+        onSwitchBook={setBook}
       />
     );
   return <AboutView onBack={goHome} />;

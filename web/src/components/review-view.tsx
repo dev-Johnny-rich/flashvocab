@@ -3,7 +3,9 @@
 import { useEffect, useMemo, useState } from "react";
 import type { Word, WordBook } from "@/lib/types";
 import TopBar from "@/components/top-bar";
+import BookPicker from "@/components/book-picker";
 import { BOOKS, type BookId } from "@/lib/books";
+import { saveCurrentBook } from "@/lib/storage";
 import WordCard from "@/components/word-card";
 import WordModal from "@/components/word-modal";
 import SpellingView from "@/components/spelling-view";
@@ -32,10 +34,12 @@ export default function ReviewView({
   bookId,
   onBack,
   onLearn,
+  onSwitchBook,
 }: {
   bookId: BookId;
   onBack?: () => void;
   onLearn?: () => void;
+  onSwitchBook: (book: BookId) => void;
 }) {
   const [book, setBook] = useState<WordBook | null>(null);
   const [error, setError] = useState(false);
@@ -44,6 +48,7 @@ export default function ReviewView({
     loadStudyState(bookId).review,
   );
   const [flipped, setFlipped] = useState(false);
+  const [picker, setPicker] = useState(false);
   const [selected, setSelected] = useState<Word | null>(null);
   const [spelling, setSpelling] = useState(false);
 
@@ -290,8 +295,9 @@ export default function ReviewView({
   return (
     <main className="view-in flex min-h-screen flex-col bg-background">
       <TopBar
-        label={`复习 ${pos + 1} / ${queue.length}`}
+        label={`${BOOKS[bookId].label} · 复习 ${pos + 1} / ${queue.length}`}
         onBack={onBack}
+        onLabelClick={() => setPicker(true)}
       />
 
       <section className="flex flex-1 flex-col items-center justify-center gap-7 p-6">
@@ -334,6 +340,17 @@ export default function ReviewView({
           )}
         </div>
       </section>
+
+      {picker && (
+        <BookPicker
+          current={bookId}
+          onClose={() => setPicker(false)}
+          onPick={(b) => {
+            saveCurrentBook(b);
+            onSwitchBook(b);
+          }}
+        />
+      )}
     </main>
   );
 }

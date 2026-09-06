@@ -3,7 +3,9 @@
 import { useEffect, useMemo, useState } from "react";
 import type { Word, WordBook } from "@/lib/types";
 import TopBar from "@/components/top-bar";
+import BookPicker from "@/components/book-picker";
 import { BOOKS, type BookId } from "@/lib/books";
+import { saveCurrentBook } from "@/lib/storage";
 import WordCard from "@/components/word-card";
 import WordModal from "@/components/word-modal";
 import {
@@ -30,9 +32,11 @@ const NEW_PER_DAY = 20; // 每日新词配额
 export default function StudyView({
   bookId,
   onBack,
+  onSwitchBook,
 }: {
   bookId: BookId;
   onBack?: () => void;
+  onSwitchBook: (book: BookId) => void;
 }) {
   const info = BOOKS[bookId];
   const [book, setBook] = useState<WordBook | null>(null);
@@ -42,6 +46,7 @@ export default function StudyView({
   const [daily, setDaily] = useState(() => ensureToday(loadStudyState(bookId)).daily);
   const [flipped, setFlipped] = useState(false);
   const [selected, setSelected] = useState<Word | null>(null);
+  const [picker, setPicker] = useState(false);
 
   useEffect(() => {
     let alive = true;
@@ -261,6 +266,7 @@ export default function StudyView({
       <TopBar
         label={`今日 ${Math.min(done, NEW_PER_DAY)}/${NEW_PER_DAY} · ${info.label}`}
         onBack={onBack}
+        onLabelClick={() => setPicker(true)}
       />
 
       {/* 词卡 + 操作区 */}
@@ -301,6 +307,17 @@ export default function StudyView({
           )}
         </div>
       </section>
+
+      {picker && (
+        <BookPicker
+          current={bookId}
+          onClose={() => setPicker(false)}
+          onPick={(b) => {
+            saveCurrentBook(b);
+            onSwitchBook(b);
+          }}
+        />
+      )}
     </main>
   );
 }
