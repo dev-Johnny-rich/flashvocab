@@ -1,7 +1,13 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { loadStudyState, resetStudyState } from "@/lib/storage";
+import {
+  daysSinceBackup,
+  getLastBackupDate,
+  loadStudyState,
+  resetStudyState,
+  setLastBackupDate,
+} from "@/lib/storage";
 
 // 数据备份工具：导出 / 导入 / 重置学习数据
 export default function DataTools({ onClose }: { onClose: () => void }) {
@@ -17,6 +23,20 @@ export default function DataTools({ onClose }: { onClose: () => void }) {
     return () => window.removeEventListener("keydown", onKey);
   }, [onClose]);
 
+  // 上次备份信息
+  const last = getLastBackupDate();
+  const since = daysSinceBackup();
+  const backupInfo =
+    last === null
+      ? "从未备份过"
+      : since === null
+        ? last
+        : since === 0
+          ? "今天"
+          : since === 1
+            ? "昨天"
+            : `${since} 天前`;
+
   // 导出
   const doExport = () => {
     const s = loadStudyState();
@@ -31,6 +51,7 @@ export default function DataTools({ onClose }: { onClose: () => void }) {
     a.download = `flashvocab-backup-${d.getFullYear()}${p(d.getMonth() + 1)}${p(d.getDate())}.json`;
     a.click();
     URL.revokeObjectURL(url);
+    setLastBackupDate();
     setMsg("已导出备份文件，请妥善保存");
     setErr(null);
   };
@@ -45,6 +66,7 @@ export default function DataTools({ onClose }: { onClose: () => void }) {
         throw new Error("格式不对");
       }
       localStorage.setItem("flashvocab.state.v1", JSON.stringify(data));
+      setLastBackupDate();
       setMsg("导入成功，正在刷新…");
       setErr(null);
       window.setTimeout(() => window.location.reload(), 800);
@@ -100,7 +122,11 @@ export default function DataTools({ onClose }: { onClose: () => void }) {
         </div>
 
         <p className="mt-3 text-sm leading-relaxed text-neutral-500">
-          学习数据保存在本机浏览器中。换设备、清理缓存前请先导出备份；恢复数据时导入备份文件即可。
+          学习数据会实时自动保存在本机浏览器中，无需每次手动操作。换设备、清理浏览器数据前导出备份即可；恢复时导入备份文件。
+        </p>
+
+        <p className="mt-4 text-xs text-neutral-400">
+          上次备份：{backupInfo}
         </p>
 
         <div className="mt-6 flex flex-col gap-3">

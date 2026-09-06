@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { loadStudyState } from "@/lib/storage";
+import { daysSinceBackup, loadStudyState } from "@/lib/storage";
 import { isDueCard, reviveCard } from "@/lib/scheduler";
 import DataTools from "@/components/data-tools";
 
@@ -30,6 +30,12 @@ export default function HomeView({
 
   const [tools, setTools] = useState(false);
 
+  // 备份提醒：从未备份或超过 7 天未备份时，按钮显示小圆点
+  const backupStale = (() => {
+    const d = daysSinceBackup();
+    return d === null || d > 7;
+  })();
+
   return (
     <main
       className="view-in relative min-h-screen overflow-hidden bg-cover bg-center"
@@ -39,7 +45,7 @@ export default function HomeView({
       <div className="marquee absolute inset-x-0 top-0 z-10 border-b border-black/5 bg-white/60 py-2 backdrop-blur-sm">
         <div className="marquee-track text-[13px] tracking-[0.12em] text-neutral-700">
           <span>
-            欢迎使用词闪记 / Flashvocab web，本网站功能将持续更新，希望大家可以喜欢并多多支持。记完之后，数据记得点击数据备份保存到本地。
+            欢迎使用词闪记 / Flashvocab web，本网站功能将持续更新，希望大家可以喜欢并多多支持。学习数据自动保存在本机，可在数据备份中导出留存。
           </span>
         </div>
       </div>
@@ -89,9 +95,15 @@ export default function HomeView({
       {/* 右下角：数据备份 */}
       <button
         onClick={() => setTools(true)}
-        className="absolute bottom-5 right-5 rounded-lg border border-neutral-900/15 bg-white/70 px-4 py-2 text-sm text-neutral-600 backdrop-blur-sm transition hover:border-neutral-900/40 hover:text-neutral-900 active:scale-[0.98]"
+        className="absolute bottom-5 right-5 flex items-center gap-1.5 rounded-lg border border-neutral-900/15 bg-white/70 px-4 py-2 text-sm text-neutral-600 backdrop-blur-sm transition hover:border-neutral-900/40 hover:text-neutral-900 active:scale-[0.98]"
       >
         数据备份
+        {backupStale && (
+          <span
+            className="h-1.5 w-1.5 rounded-full bg-amber-500"
+            title="超过 7 天未备份，建议导出留存"
+          />
+        )}
       </button>
 
       {tools && <DataTools onClose={() => setTools(false)} />}

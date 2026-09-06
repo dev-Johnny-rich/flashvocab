@@ -39,6 +39,7 @@ export interface StudyState {
 }
 
 const KEY = "flashvocab.state.v1";
+const BACKUP_KEY = "flashvocab.backup"; // 上次手动备份日期 YYYY-MM-DD
 
 const EMPTY: StudyState = {
   version: 1,
@@ -53,6 +54,36 @@ const EMPTY: StudyState = {
 export function todayStr(d: Date = new Date()): string {
   const p = (n: number) => String(n).padStart(2, "0");
   return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}`;
+}
+
+// —— 备份时间追踪（温和提醒用）——
+export function setLastBackupDate(d: string = todayStr()): void {
+  try {
+    localStorage.setItem(BACKUP_KEY, d);
+  } catch {
+    /* noop */
+  }
+}
+
+export function getLastBackupDate(): string | null {
+  try {
+    return localStorage.getItem(BACKUP_KEY);
+  } catch {
+    return null;
+  }
+}
+
+// 距上次备份的天数；从未备份返回 null
+export function daysSinceBackup(): number | null {
+  const d = getLastBackupDate();
+  if (!d) return null;
+  const [y, m, day] = d.split("-").map(Number);
+  if (!y || !m || !day) return null;
+  const a = new Date(y, m - 1, day);
+  const b = new Date();
+  a.setHours(0, 0, 0, 0);
+  b.setHours(0, 0, 0, 0);
+  return Math.round((b.getTime() - a.getTime()) / 86400000);
 }
 
 export function loadStudyState(): StudyState {
