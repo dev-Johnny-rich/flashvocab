@@ -30,6 +30,17 @@ export default function HomeView({
       className="view-in relative min-h-screen overflow-hidden bg-cover bg-center"
       style={{ backgroundImage: "url(/images/flashvocab-bg.jpg)" }}
     >
+      {/* 顶部欢迎滚动条 */}
+      <div className="marquee absolute inset-x-0 top-0 z-10 border-b border-black/5 bg-white/60 py-2 backdrop-blur-sm">
+        <div className="marquee-track text-[13px] text-neutral-700">
+          <span>
+            欢迎使用词闪记 / Flashvocab web，本网站功能将持续更新，希望大家可以喜欢并多多支持
+          </span>
+          <span>
+            欢迎使用词闪记 / Flashvocab web，本网站功能将持续更新，希望大家可以喜欢并多多支持
+          </span>
+        </div>
+      </div>
       {/* 标语 · 黑色 h1，位于屏心上方 200px */}
       <h1
         className="absolute left-1/2 w-[min(92vw,64rem)] px-4 text-center text-[clamp(1.9rem,5vw,3.4rem)] font-normal leading-snug text-black"

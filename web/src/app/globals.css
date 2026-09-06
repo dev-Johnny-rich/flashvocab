@@ -81,6 +81,35 @@ body {
   }
 }
 
+/* —— 顶部欢迎文字滚动条 —— */
+.marquee {
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+.marquee-track {
+  display: inline-flex;
+  width: max-content;
+  animation: marquee-scroll 26s linear infinite;
+}
+
+.marquee:hover .marquee-track {
+  animation-play-state: paused;
+}
+
+.marquee-track > span {
+  padding-right: 3rem; /* 两段之间的间隔 */
+}
+
+@keyframes marquee-scroll {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
+
 /* —— 词卡 3D 翻转 —— */
 .flashcard {
   perspective: 1600px;
@@ -147,6 +176,12 @@ body {
   .intro-dot {
     animation: none;
     opacity: 0.5;
+  }
+  .marquee-track {
+    animation: none;
+  }
+  .marquee {
+    overflow-x: auto;
   }
   .flashcard-inner {
     transition: none;
