@@ -5,6 +5,7 @@ import type { Word, WordBook } from "@/lib/types";
 import TopBar from "@/components/top-bar";
 import WordCard from "@/components/word-card";
 import WordModal from "@/components/word-modal";
+import SpellingView from "@/components/spelling-view";
 import {
   addLog,
   lastRatingToday,
@@ -41,6 +42,7 @@ export default function ReviewView({
   );
   const [flipped, setFlipped] = useState(false);
   const [selected, setSelected] = useState<Word | null>(null);
+  const [spelling, setSpelling] = useState(false);
 
   useEffect(() => {
     let alive = true;
@@ -139,6 +141,18 @@ export default function ReviewView({
 
   // —— 复习完成页 ——
   if (finished) {
+    // 默写模式（对今日复习的全部单词拼写测试）
+    if (spelling) {
+      const spellWords = queue
+        .map((word) => wordOf.get(word))
+        .filter((x): x is Word => !!x);
+      return (
+        <SpellingView
+          words={spellWords}
+          onClose={() => setSpelling(false)}
+        />
+      );
+    }
     return (
       <main className="view-in flex h-screen flex-col bg-background">
         <TopBar label="复习 · 已完成" onBack={onBack} />
@@ -160,7 +174,13 @@ export default function ReviewView({
             >
               返回主页
             </button>
-            <p className="mt-2 text-[15px] text-neutral-500">
+            <button
+              onClick={() => setSpelling(true)}
+              className="rounded-full border border-neutral-300 bg-white px-8 py-2.5 text-sm text-neutral-700 transition hover:border-neutral-900 hover:text-neutral-900 active:scale-[0.98]"
+            >
+              单词默写 · 检验拼写
+            </button>
+            <p className="mt-1 text-[15px] text-neutral-500">
               🎉 复习是记忆的关键，明天继续
             </p>
           </section>
