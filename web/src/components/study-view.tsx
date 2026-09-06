@@ -73,6 +73,8 @@ export default function StudyView({ onBack }: { onBack?: () => void }) {
     setFlipped(false);
   };
 
+  const toggleFlip = () => setFlipped((f) => !f);
+
   return (
     <main className="view-in flex min-h-screen flex-col bg-background">
       <TopBar label={`四级词汇 · 已学 ${doneCount} 词`} onBack={onBack} />
@@ -82,13 +84,13 @@ export default function StudyView({ onBack }: { onBack?: () => void }) {
         {/* 卡片 */}
         <div
           className="flashcard w-full max-w-2xl cursor-pointer select-none"
-          onClick={() => setFlipped(true)}
+          onClick={toggleFlip}
           role="button"
           tabIndex={0}
           onKeyDown={(e) => {
-            if (!flipped && (e.key === "Enter" || e.key === " ")) {
+            if (e.key === "Enter" || e.key === " ") {
               e.preventDefault();
-              setFlipped(true);
+              toggleFlip();
             }
           }}
         >
