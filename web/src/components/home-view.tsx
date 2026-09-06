@@ -14,13 +14,13 @@ export default function HomeView({ onLearn }: { onLearn: () => void }) {
       style={{ backgroundImage: "url(/images/flashvocab-bg.jpg)" }}
     >
       <div className="flex min-h-screen flex-col items-center justify-center px-6 text-center">
-        {/* 标语 · 黑色 */}
-        <p
-          className="max-w-3xl text-[clamp(1.4rem,3.8vw,2.4rem)] font-normal leading-snug text-black"
+        {/* 标语 · 黑色 h1 */}
+        <h1
+          className="max-w-4xl text-[clamp(1.9rem,5vw,3.4rem)] font-normal leading-snug text-black"
           style={{ fontFamily: SERIF }}
         >
           Break language barriers, unlock endless possibilities.
-        </p>
+        </h1>
 
         {/* 学习 / 复习 选择 */}
         <div className="mt-14 flex flex-col items-center gap-4 sm:flex-row sm:gap-6">
