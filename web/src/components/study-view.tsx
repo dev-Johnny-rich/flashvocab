@@ -14,6 +14,12 @@ import {
   type Rating,
   type StudyState,
 } from "@/lib/storage";
+import {
+  dueInDaysText,
+  newCard,
+  reviveCard,
+  scheduleNext,
+} from "@/lib/scheduler";
 
 const SERIF =
   'Baskerville, "Songti SC", "Noto Serif SC", "SimSun", Georgia, serif';
@@ -164,6 +170,9 @@ export default function StudyView({ onBack }: { onBack?: () => void }) {
             <ul className="min-h-0 flex-1 overflow-y-auto">
               {todayWords.map((tw, i) => {
                 const r = todayRatingOf(tw.word);
+                const card = state.cards[tw.word]
+                  ? reviveCard(state.cards[tw.word])
+                  : null;
                 return (
                   <li key={tw.word}>
                     <button
@@ -180,6 +189,7 @@ export default function StudyView({ onBack }: { onBack?: () => void }) {
                         {tw.phonetic && (
                           <span className="block truncate text-xs text-neutral-400">
                             /{tw.phonetic}/
+                            {card && ` · 下次复习 ${dueInDaysText(card)}`}
                           </span>
                         )}
                       </span>
@@ -226,9 +236,13 @@ export default function StudyView({ onBack }: { onBack?: () => void }) {
 
   const w: Word = book.words[cur];
   const rate = (rating: Rating) => {
+    // FSRS：推进卡片状态（首次学习从空卡开始，复习沿用既有卡）
+    const prevCard = reviveCard(state.cards[w.word]) ?? newCard();
+    const nextCard = scheduleNext(prevCard, rating);
     const next = addLog(state, w.word, rating);
     const saved: StudyState = {
       ...next,
+      cards: { ...state.cards, [w.word]: nextCard },
       cursor: state.cursor + 1,
       daily: { ...daily, done: daily.done + 1 },
     };

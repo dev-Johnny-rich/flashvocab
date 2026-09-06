@@ -1,4 +1,6 @@
-// 学习数据存储层（R4/R5：localStorage 实现；预留 remote 同步替换位）
+import type { Card } from "@/lib/scheduler";
+
+// 学习数据存储层（R4/R5/M3：localStorage 实现；预留 remote 同步替换位）
 // 数据模型带 version 字段，未来 schema 变更可迁移
 
 export type Rating = "again" | "hard" | "good";
@@ -17,8 +19,10 @@ export interface Daily {
 
 export interface StudyState {
   version: 1;
-  // 每个单词的评分历史（FSRS 等算法可从原始序列推导卡片状态）
+  // 每个单词的评分历史（原始事实，可推导任何算法状态）
   logs: Record<string, LogEntry[]>;
+  // FSRS 卡片状态（当前调度依据；JSON 中 due/last_review 为 ISO 字符串）
+  cards: Record<string, Card>;
   // 词库总进度：已完成到第几个词（0-based，= 下一个新词的 index）
   cursor: number;
   // 今日会话（null = 尚未开始今日学习）
@@ -27,7 +31,13 @@ export interface StudyState {
 
 const KEY = "flashvocab.state.v1";
 
-const EMPTY: StudyState = { version: 1, logs: {}, cursor: 0, daily: null };
+const EMPTY: StudyState = {
+  version: 1,
+  logs: {},
+  cards: {},
+  cursor: 0,
+  daily: null,
+};
 
 // 本地时区日期 YYYY-MM-DD
 export function todayStr(d: Date = new Date()): string {
@@ -46,6 +56,7 @@ export function loadStudyState(): StudyState {
     return {
       version: 1,
       logs: parsed.logs ?? {},
+      cards: parsed.cards ?? {},
       cursor: parsed.cursor ?? 0,
       daily: parsed.daily ?? null,
     };
