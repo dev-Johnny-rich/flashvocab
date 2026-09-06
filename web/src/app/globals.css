@@ -91,7 +91,7 @@ body {
   display: inline-flex;
   width: max-content;
   /* 完整行程：从视口右侧外驶入，一路滚到最左边完全离开，再开始下一趟 */
-  animation: marquee-scroll 15s linear infinite;
+  animation: marquee-scroll 32s linear infinite;
 }
 
 .marquee:hover .marquee-track {
