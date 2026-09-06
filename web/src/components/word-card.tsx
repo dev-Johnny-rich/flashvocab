@@ -6,6 +6,24 @@ import SpeakButton from "@/components/speak-button";
 const SERIF =
   'Baskerville, "Songti SC", "Noto Serif SC", "SimSun", Georgia, serif';
 
+// 单词大字按长度分档：返回 clamp(min, vw, max) 三个值（内联 style，
+// 不依赖 Tailwind 动态类提取；移动端 vw 自适应防溢出，桌面由 max 上限控制）
+function wordSize(len: number): string {
+  const s =
+    len <= 5
+      ? "clamp(2.9rem, 10vw, 5rem)"
+      : len <= 7
+        ? "clamp(2.5rem, 8.6vw, 4.4rem)"
+        : len <= 9
+          ? "clamp(2.1rem, 7.2vw, 3.7rem)"
+          : len <= 11
+            ? "clamp(1.85rem, 6.2vw, 3.2rem)"
+            : len <= 13
+              ? "clamp(1.6rem, 5.2vw, 2.8rem)"
+              : "clamp(1.4rem, 4.5vw, 2.4rem)";
+  return s;
+}
+
 // 学习/复习共用的词卡：点击翻转（受控 flipped），正反两面含发音与例句
 export default function WordCard({
   w,
@@ -35,10 +53,11 @@ export default function WordCard({
         {/* 正面：单词 */}
         <div className="face max-h-[62vh] overflow-y-auto rounded-2xl border border-neutral-200/80 bg-white px-8 py-14 text-center shadow-[0_1px_2px_rgba(0,0,0,0.03)] sm:py-16">
           <div key={w.word} className="word-enter">
-            <div className="flex items-center justify-center gap-3">
+            <div className="flex min-w-0 items-center justify-center gap-3">
+              {/* 字号按单词长度自适应，防窄屏溢出 */}
               <h1
-                className="break-words text-[clamp(3rem,9vw,5.5rem)] font-normal leading-tight text-foreground"
-                style={{ fontFamily: SERIF }}
+                className="min-w-0 max-w-full break-words font-normal leading-tight text-foreground"
+                style={{ fontFamily: SERIF, fontSize: wordSize(w.word.length) }}
               >
                 {w.word}
               </h1>
