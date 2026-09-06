@@ -17,6 +17,13 @@ export interface Daily {
   done: number; // 今日已完成（已评分）词数
 }
 
+// 今日复习会话：到期词队列快照（跨天重置）
+export interface Review {
+  date: string; // YYYY-MM-DD
+  queue: string[]; // 今日到期需复习的单词（按词库顺序）
+  pos: number; // 已完成复习的词数
+}
+
 export interface StudyState {
   version: 1;
   // 每个单词的评分历史（原始事实，可推导任何算法状态）
@@ -27,6 +34,8 @@ export interface StudyState {
   cursor: number;
   // 今日会话（null = 尚未开始今日学习）
   daily: Daily | null;
+  // 今日复习会话（null = 今日尚未复习）
+  review: Review | null;
 }
 
 const KEY = "flashvocab.state.v1";
@@ -37,6 +46,7 @@ const EMPTY: StudyState = {
   cards: {},
   cursor: 0,
   daily: null,
+  review: null,
 };
 
 // 本地时区日期 YYYY-MM-DD
@@ -59,6 +69,7 @@ export function loadStudyState(): StudyState {
       cards: parsed.cards ?? {},
       cursor: parsed.cursor ?? 0,
       daily: parsed.daily ?? null,
+      review: parsed.review ?? null,
     };
   } catch {
     return { ...EMPTY, logs: {} };

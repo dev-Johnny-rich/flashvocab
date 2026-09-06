@@ -1,5 +1,9 @@
 "use client";
 
+import { useState } from "react";
+import { loadStudyState } from "@/lib/storage";
+import { isDueCard, reviveCard } from "@/lib/scheduler";
+
 const SERIF =
   'Baskerville, "Songti SC", "Noto Serif SC", "SimSun", Georgia, serif';
 
@@ -10,6 +14,17 @@ export default function HomeView({
   onLearn: () => void;
   onReview: () => void;
 }) {
+  // 待复习数（进入主页时按到期卡片计算）
+  const [due] = useState(() => {
+    const s = loadStudyState();
+    let n = 0;
+    for (const raw of Object.values(s.cards)) {
+      const c = reviveCard(raw);
+      if (c && isDueCard(c)) n += 1;
+    }
+    return n;
+  });
+
   return (
     <main
       className="view-in relative min-h-screen overflow-hidden bg-cover bg-center"
@@ -38,9 +53,14 @@ export default function HomeView({
           </button>
           <button
             onClick={onReview}
-            className="w-44 rounded-full border border-neutral-900/25 bg-white/85 px-8 py-3.5 text-base text-neutral-900 backdrop-blur-sm transition hover:bg-white active:scale-[0.98]"
+            className="flex w-44 items-center justify-center gap-2 rounded-full border border-neutral-900/25 bg-white/85 px-8 py-3.5 text-base text-neutral-900 backdrop-blur-sm transition hover:bg-white active:scale-[0.98]"
           >
             复习
+            {due > 0 && (
+              <span className="inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-neutral-900 px-1.5 text-xs font-medium text-white">
+                {due}
+              </span>
+            )}
           </button>
         </div>
       </div>

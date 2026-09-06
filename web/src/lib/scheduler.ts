@@ -5,6 +5,7 @@ import {
   fsrs,
   generatorParameters,
   Rating,
+  State,
   type Card,
   type Grade,
 } from "ts-fsrs";
@@ -61,4 +62,14 @@ export function dueInDaysText(card: Card, now: Date = new Date()): string {
   if (d <= 0) return "今天";
   if (d === 1) return "明天";
   return `${d} 天后`;
+}
+
+// 是否到期需要复习（排除未学过的 New 卡；按日历日：due 在今天或以前即到期）
+export function isDueCard(card: Card, now: Date = new Date()): boolean {
+  if (card.state === State.New) return false;
+  const a = new Date(card.due);
+  a.setHours(0, 0, 0, 0);
+  const b = new Date(now);
+  b.setHours(0, 0, 0, 0);
+  return a.getTime() <= b.getTime();
 }
