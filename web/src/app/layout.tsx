@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
+import Script from "next/script";
 import "./globals.css";
 import SwRegister from "@/components/sw-register";
 
@@ -50,6 +51,13 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body className="min-h-full flex flex-col">
         {children}
         <SwRegister />
+        {/* Cloudflare Web Analytics（仅作者在 CF 后台可查看访问数据） */}
+        <Script
+          type="module"
+          src="https://static.cloudflareinsights.com/beacon.min.js"
+          strategy="afterInteractive"
+          data-cf-beacon='{"token": "8e09c095c895495088aa7588f02667b6"}'
+        />
       </body>
     </html>
   );
