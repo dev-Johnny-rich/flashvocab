@@ -13,8 +13,14 @@ const TOTAL = EN_START + (EN.length - 1) * EN_GAP + CHAR_DUR + 80;
 export default function Home() {
   return (
     <main className="flex min-h-screen flex-col items-center justify-center">
-      {/* 词闪记 · 逐字 */}
-      <h1 className="flex select-none text-[clamp(4.5rem,15vw,8.5rem)] font-semibold leading-none tracking-[0.04em] text-foreground">
+      {/* 词闪记 · 逐字（Baskerville 衬线气质：中文落宋体） */}
+      <h1
+        className="flex select-none text-[clamp(4rem,15vw,8.5rem)] font-normal leading-none tracking-[0.06em] text-foreground"
+        style={{
+          fontFamily:
+            'Baskerville, "Songti SC", "Noto Serif SC", "SimSun", Georgia, serif',
+        }}
+      >
         {CN.map((ch, i) => (
           <span
             key={ch}
@@ -26,8 +32,11 @@ export default function Home() {
         ))}
       </h1>
 
-      {/* Flashvocab · 字母逐个接续 */}
-      <p className="mt-5 flex select-none text-sm text-neutral-500">
+      {/* Flashvocab · 字母逐个接续（Baskerville） */}
+      <p
+        className="mt-5 flex select-none text-base text-neutral-500"
+        style={{ fontFamily: 'Baskerville, Georgia, serif' }}
+      >
         {EN.map((ch, i) => (
           <span
             key={i}
@@ -42,8 +51,11 @@ export default function Home() {
         ))}
       </p>
 
-      {/* 进度条 · 与名字完整显示同步 */}
-      <div className="mt-12 h-[2px] w-56 overflow-hidden rounded-full bg-neutral-200">
+      {/* 进度条 · 1200px 上限，走满后淡出退场 */}
+      <div
+        className="intro-fade mt-14 h-[2px] w-[min(1200px,calc(100vw-3rem))] overflow-hidden rounded-full bg-neutral-200"
+        style={{ animationDelay: `${TOTAL + 300}ms` }}
+      >
         <div
           className="intro-bar h-full rounded-full bg-foreground"
           style={{ animationDuration: `${TOTAL}ms` }}

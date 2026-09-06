@@ -50,6 +50,18 @@ body {
   animation: bar-grow linear forwards;
 }
 
+/* 进度条走满后淡出退场（delay 由组件按 TOTAL 注入） */
+.intro-fade {
+  opacity: 1;
+  animation: bar-hide 0.45s ease forwards;
+}
+
+@keyframes bar-hide {
+  to {
+    opacity: 0;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .intro-char {
     animation: none;
@@ -57,5 +69,9 @@ body {
   }
   .intro-bar {
     animation-duration: 1ms !important;
+  }
+  .intro-fade {
+    animation: none;
+    opacity: 0;
   }
 }
