@@ -90,8 +90,8 @@ body {
 .marquee-track {
   display: inline-flex;
   width: max-content;
-  /* 从视口右侧外(隧道口)驶入，平移一个周期(--cycle)后视觉无缝接续 */
-  animation: marquee-scroll 16s linear infinite;
+  /* 完整行程：从视口右侧外驶入，一路滚到最左边完全离开，再开始下一趟 */
+  animation: marquee-scroll 15s linear infinite;
 }
 
 .marquee:hover .marquee-track {
@@ -99,7 +99,7 @@ body {
 }
 
 .marquee-track > span {
-  padding-right: 3rem; /* 两段之间的间隔 */
+  padding-right: 3rem;
 }
 
 @keyframes marquee-scroll {
@@ -107,7 +107,7 @@ body {
     transform: translateX(100vw);
   }
   to {
-    transform: translateX(calc(100vw - var(--cycle, 800px)));
+    transform: translateX(-100%);
   }
 }
 
