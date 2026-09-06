@@ -13,7 +13,10 @@ export default function HomeView({ onLearn }: { onLearn: () => void }) {
       className="view-in relative min-h-screen overflow-hidden bg-cover bg-center"
       style={{ backgroundImage: "url(/images/flashvocab-bg.jpg)" }}
     >
-      <div className="flex min-h-screen flex-col items-center justify-center px-6 text-center">
+      <div
+        className="flex min-h-screen flex-col items-center justify-center px-6 text-center"
+        style={{ transform: "translateY(-200px)" }}
+      >
         {/* 标语 · 黑色 h1 */}
         <h1
           className="max-w-4xl text-[clamp(1.9rem,5vw,3.4rem)] font-normal leading-snug text-black"
