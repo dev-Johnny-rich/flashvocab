@@ -2,9 +2,9 @@
 """edge-tts 批量发音生成：为词书每词生成 mp3 (en-GB-SoniaNeural)
 
 用法:
-  LIMIT=20 python3 gen_audio.py              # 试跑 20 词
-  python3 gen_audio.py                       # 全量（跳过已有文件，可断点续跑）
-产出: ~/vocab/web/public/audio/<word>.mp3
+  LIMIT=20 python3 gen_audio.py              # 试跑 20 词（默认 cet4）
+  BOOK=cet6 python3 gen_audio.py             # 生成六级词书音频
+产出: ~/vocab/web/public/audio/<word>.mp3 （cet4/cet6 词表无重叠，可共用目录）
 """
 import asyncio
 import json
@@ -14,7 +14,8 @@ import time
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 OUT = os.path.normpath(os.path.join(HERE, "..", "web", "public", "audio"))
-BOOK_PATH = os.path.normpath(os.path.join(HERE, "..", "data", "wordbooks", "cet4.json"))
+BOOK = os.environ.get("BOOK", "cet4")
+BOOK_PATH = os.path.normpath(os.path.join(HERE, "..", "data", "wordbooks", f"{BOOK}.json"))
 VOICE = os.environ.get("VOICE", "en-GB-SoniaNeural")
 LIMIT = int(os.environ.get("LIMIT", "0"))  # 0 = all
 WORKERS = int(os.environ.get("WORKERS", "4"))
@@ -64,7 +65,7 @@ async def main() -> None:
     if LIMIT:
         todo = todo[:LIMIT]
     stats = {"done": 0, "hit": 0, "fail": 0, "total": len(todo)}
-    print(f"cet4: 共 {len(words)} 词, 待生成 {len(todo)}, 并发 {WORKERS}", flush=True)
+    print(f"{BOOK}: 共 {len(words)} 词, 待生成 {len(todo)}, 并发 {WORKERS}", flush=True)
     q = asyncio.Queue()
     for w in todo:
         q.put_nowait(w)
