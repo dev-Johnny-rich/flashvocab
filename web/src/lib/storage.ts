@@ -1,7 +1,8 @@
 import type { Card } from "@/lib/scheduler";
+import type { BookId } from "@/lib/books";
 
-// 学习数据存储层（R4/R5/M3：localStorage 实现；预留 remote 同步替换位）
-// 数据模型带 version 字段，未来 schema 变更可迁移
+// 学习数据存储层（每词书独立 key；localStorage 实现，预留 remote 同步替换位）
+// 词书间进度/评分/复习排期完全隔离，互不影响
 
 export type Rating = "again" | "hard" | "good";
 
@@ -38,8 +39,12 @@ export interface StudyState {
   review: Review | null;
 }
 
-const KEY = "flashvocab.state.v1";
+const KEY_PREFIX = "flashvocab.state.";
+const LEGACY_KEY = "flashvocab.state.v1"; // 词书功能前的旧数据 key
+const CURRENT_KEY = "flashvocab.currentBook";
 const BACKUP_KEY = "flashvocab.backup"; // 上次手动备份日期 YYYY-MM-DD
+
+const keyOf = (book: BookId) => `${KEY_PREFIX}${book}.v1`;
 
 const EMPTY: StudyState = {
   version: 1,
@@ -54,6 +59,24 @@ const EMPTY: StudyState = {
 export function todayStr(d: Date = new Date()): string {
   const p = (n: number) => String(n).padStart(2, "0");
   return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}`;
+}
+
+// —— 当前词书（主页学习/复习默认目标）——
+export function loadCurrentBook(): BookId {
+  try {
+    const b = localStorage.getItem(CURRENT_KEY);
+    return b === "cet6" ? "cet6" : "cet4";
+  } catch {
+    return "cet4";
+  }
+}
+
+export function saveCurrentBook(book: BookId): void {
+  try {
+    localStorage.setItem(CURRENT_KEY, book);
+  } catch {
+    /* noop */
+  }
 }
 
 // —— 备份时间追踪（温和提醒用）——
@@ -86,9 +109,19 @@ export function daysSinceBackup(): number | null {
   return Math.round((b.getTime() - a.getTime()) / 86400000);
 }
 
-export function loadStudyState(): StudyState {
+// 读取指定词书状态（含旧单书数据迁移到 cet4）
+export function loadStudyState(book: BookId): StudyState {
   try {
-    const raw = localStorage.getItem(KEY);
+    let raw = localStorage.getItem(keyOf(book));
+    if (!raw && book === "cet4") {
+      // 迁移词书功能前的旧数据到 cet4 新 key（并立即落盘，防止丢失）
+      const legacy = localStorage.getItem(LEGACY_KEY);
+      if (legacy) {
+        raw = legacy;
+        localStorage.removeItem(LEGACY_KEY);
+        localStorage.setItem(keyOf(book), legacy);
+      }
+    }
     if (!raw) return { ...EMPTY, logs: {} };
     const parsed = JSON.parse(raw) as StudyState;
     if (parsed.version !== 1 || typeof parsed.cursor !== "number") {
@@ -107,17 +140,17 @@ export function loadStudyState(): StudyState {
   }
 }
 
-export function saveStudyState(s: StudyState): void {
+export function saveStudyState(book: BookId, s: StudyState): void {
   try {
-    localStorage.setItem(KEY, JSON.stringify(s));
+    localStorage.setItem(keyOf(book), JSON.stringify(s));
   } catch {
     // 存储不可用（隐私模式/超限）时静默降级：本次会话仍可学习
   }
 }
 
-export function resetStudyState(): void {
+export function resetStudyState(book: BookId): void {
   try {
-    localStorage.removeItem(KEY);
+    localStorage.removeItem(keyOf(book));
   } catch {
     /* noop */
   }

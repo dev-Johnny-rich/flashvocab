@@ -1,25 +1,28 @@
 "use client";
 
 import { useState } from "react";
-import { daysSinceBackup, loadStudyState } from "@/lib/storage";
+import { daysSinceBackup, loadCurrentBook, loadStudyState, saveCurrentBook } from "@/lib/storage";
 import { isDueCard, reviveCard } from "@/lib/scheduler";
+import { BOOK_ORDER, BOOKS, type BookId } from "@/lib/books";
 import DataTools from "@/components/data-tools";
 
 const SERIF =
   'Baskerville, "Songti SC", "Noto Serif SC", "SimSun", Georgia, serif';
 
 export default function HomeView({
-  onLearn,
+  currentBook,
+  onLearnBook,
   onReview,
   onAbout,
 }: {
-  onLearn: () => void;
+  currentBook: BookId;
+  onLearnBook: (book: BookId) => void;
   onReview: () => void;
   onAbout: () => void;
 }) {
-  // 待复习数（进入主页时按到期卡片计算）
+  // 待复习数（当前词书的到期卡片数）
   const [due] = useState(() => {
-    const s = loadStudyState();
+    const s = loadStudyState(currentBook);
     let n = 0;
     for (const raw of Object.values(s.cards)) {
       const c = reviveCard(raw);
@@ -28,6 +31,7 @@ export default function HomeView({
     return n;
   });
 
+  const [picker, setPicker] = useState(false);
   const [tools, setTools] = useState(false);
 
   // 备份提醒：从未备份或超过 7 天未备份时，按钮显示小圆点
@@ -35,6 +39,11 @@ export default function HomeView({
     const d = daysSinceBackup();
     return d === null || d > 7;
   })();
+
+  const pickBook = (b: BookId) => {
+    saveCurrentBook(b);
+    onLearnBook(b);
+  };
 
   return (
     <main
@@ -65,7 +74,7 @@ export default function HomeView({
       <div className="absolute left-1/2 top-1/2 flex -translate-x-1/2 -translate-y-1/2 flex-col items-center">
         <div className="flex flex-col items-center gap-4 sm:flex-row sm:gap-6">
           <button
-            onClick={onLearn}
+            onClick={() => setPicker(true)}
             className="w-44 rounded-full bg-neutral-900 px-8 py-3.5 text-base text-white transition hover:bg-neutral-700 active:scale-[0.98]"
           >
             学习
@@ -82,6 +91,9 @@ export default function HomeView({
             )}
           </button>
         </div>
+        <p className="mt-3 text-xs text-neutral-600/80">
+          当前词书：{BOOKS[currentBook].label}
+        </p>
       </div>
 
       {/* 左下角：关于作者（蓝色按钮） */}
@@ -105,6 +117,81 @@ export default function HomeView({
           />
         )}
       </button>
+
+      {/* 词书选择弹层 */}
+      {picker && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 p-4 backdrop-blur-[2px]"
+          onClick={() => setPicker(false)}
+          role="dialog"
+          aria-modal="true"
+        >
+          <div
+            className="w-full max-w-md rounded-2xl bg-white px-7 py-8 shadow-xl"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-start justify-between">
+              <h2 className="text-xl font-normal text-foreground">选择词书</h2>
+              <button
+                onClick={() => setPicker(false)}
+                aria-label="关闭"
+                className="rounded-full p-1.5 text-neutral-400 transition hover:bg-neutral-100 hover:text-neutral-700"
+              >
+                <svg
+                  width="18"
+                  height="18"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  aria-hidden
+                >
+                  <path d="M18 6 6 18M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+            <p className="mt-2 text-xs text-neutral-400">
+              每本词书的进度和复习计划相互独立
+            </p>
+            <div className="mt-5 flex flex-col gap-3">
+              {BOOK_ORDER.map((id) => {
+                const b = BOOKS[id];
+                const active = id === currentBook;
+                return (
+                  <button
+                    key={id}
+                    onClick={() => pickBook(id)}
+                    className={`flex items-center justify-between rounded-xl border px-5 py-4 text-left transition active:scale-[0.99] ${
+                      active
+                        ? "border-neutral-900 bg-neutral-900 text-white"
+                        : "border-neutral-200 bg-white hover:border-neutral-400"
+                    }`}
+                  >
+                    <span>
+                      <span className="block text-lg" style={{ fontFamily: SERIF }}>
+                        {b.label}
+                      </span>
+                      <span
+                        className={`block text-xs ${
+                          active ? "text-white/70" : "text-neutral-400"
+                        }`}
+                      >
+                        {b.desc} · {b.count} 词
+                      </span>
+                    </span>
+                    <span
+                      className={`text-sm ${active ? "text-white" : "text-neutral-300"}`}
+                    >
+                      {active ? "学习中" : "→"}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+      )}
 
       {tools && <DataTools onClose={() => setTools(false)} />}
     </main>

@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import type { Word, WordBook } from "@/lib/types";
 import TopBar from "@/components/top-bar";
+import { BOOKS, type BookId } from "@/lib/books";
 import WordCard from "@/components/word-card";
 import WordModal from "@/components/word-modal";
 import {
@@ -26,18 +27,25 @@ const SERIF =
   'Baskerville, "Songti SC", "Noto Serif SC", "SimSun", Georgia, serif';
 const NEW_PER_DAY = 20; // 每日新词配额
 
-export default function StudyView({ onBack }: { onBack?: () => void }) {
+export default function StudyView({
+  bookId,
+  onBack,
+}: {
+  bookId: BookId;
+  onBack?: () => void;
+}) {
+  const info = BOOKS[bookId];
   const [book, setBook] = useState<WordBook | null>(null);
   const [error, setError] = useState(false);
-  const [state, setState] = useState<StudyState>(() => loadStudyState());
+  const [state, setState] = useState<StudyState>(() => loadStudyState(bookId));
   // 今日会话（进入界面时确保存在；跨天自动开新一批）
-  const [daily, setDaily] = useState(() => ensureToday(loadStudyState()).daily);
+  const [daily, setDaily] = useState(() => ensureToday(loadStudyState(bookId)).daily);
   const [flipped, setFlipped] = useState(false);
   const [selected, setSelected] = useState<Word | null>(null);
 
   useEffect(() => {
     let alive = true;
-    fetch("data/cet4.json")
+    fetch(`data/${info.file}`)
       .then((r) => {
         if (!r.ok) throw new Error(String(r.status));
         return r.json();
@@ -85,7 +93,7 @@ export default function StudyView({ onBack }: { onBack?: () => void }) {
   if (error) {
     return (
       <main className="view-in flex min-h-screen flex-col bg-background">
-        <TopBar label="四级词汇" onBack={onBack} />
+        <TopBar label={info.label} onBack={onBack} />
         <section className="flex flex-1 items-center justify-center">
           <p className="text-sm text-neutral-400">词书加载失败，请刷新重试</p>
         </section>
@@ -96,7 +104,7 @@ export default function StudyView({ onBack }: { onBack?: () => void }) {
   if (!book || !daily) {
     return (
       <main className="view-in flex min-h-screen flex-col bg-background">
-        <TopBar label="四级词汇" onBack={onBack} />
+        <TopBar label={info.label} onBack={onBack} />
         <section className="flex flex-1 items-center justify-center">
           <p className="text-sm text-neutral-400">加载词库中…</p>
         </section>
@@ -110,7 +118,7 @@ export default function StudyView({ onBack }: { onBack?: () => void }) {
     const n = Math.min(daily.done, NEW_PER_DAY);
     return (
       <main className="view-in flex h-screen flex-col bg-background">
-        <TopBar label="四级词汇 · 今日已完成" onBack={onBack} />
+        <TopBar label={`${info.label} · 今日已完成`} onBack={onBack} />
         <div className="flex min-h-0 flex-1 flex-col lg:flex-row">
           {/* 主区：完成信息 */}
           <section className="flex flex-1 flex-col items-center justify-center gap-5 overflow-y-auto px-6 py-10 text-center">
@@ -240,7 +248,7 @@ export default function StudyView({ onBack }: { onBack?: () => void }) {
       cursor: state.cursor + 1,
       daily: { ...daily, done: daily.done + 1 },
     };
-    saveStudyState(saved);
+    saveStudyState(bookId, saved);
     setState(saved);
     setDaily(saved.daily!);
     setFlipped(false);
@@ -251,7 +259,7 @@ export default function StudyView({ onBack }: { onBack?: () => void }) {
   return (
     <main className="view-in flex min-h-screen flex-col bg-background">
       <TopBar
-        label={`今日 ${Math.min(done, NEW_PER_DAY)}/${NEW_PER_DAY} · 四级词汇`}
+        label={`今日 ${Math.min(done, NEW_PER_DAY)}/${NEW_PER_DAY} · ${info.label}`}
         onBack={onBack}
       />
 

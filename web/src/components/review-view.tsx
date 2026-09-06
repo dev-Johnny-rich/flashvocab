@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import type { Word, WordBook } from "@/lib/types";
 import TopBar from "@/components/top-bar";
+import { BOOKS, type BookId } from "@/lib/books";
 import WordCard from "@/components/word-card";
 import WordModal from "@/components/word-modal";
 import SpellingView from "@/components/spelling-view";
@@ -28,17 +29,19 @@ const SERIF =
   'Baskerville, "Songti SC", "Noto Serif SC", "SimSun", Georgia, serif';
 
 export default function ReviewView({
+  bookId,
   onBack,
   onLearn,
 }: {
+  bookId: BookId;
   onBack?: () => void;
   onLearn?: () => void;
 }) {
   const [book, setBook] = useState<WordBook | null>(null);
   const [error, setError] = useState(false);
-  const [state, setState] = useState<StudyState>(() => loadStudyState());
+  const [state, setState] = useState<StudyState>(() => loadStudyState(bookId));
   const [session, setSession] = useState<Review | null>(() =>
-    loadStudyState().review,
+    loadStudyState(bookId).review,
   );
   const [flipped, setFlipped] = useState(false);
   const [selected, setSelected] = useState<Word | null>(null);
@@ -46,7 +49,7 @@ export default function ReviewView({
 
   useEffect(() => {
     let alive = true;
-    fetch("data/cet4.json")
+    fetch(`data/${BOOKS[bookId].file}`)
       .then((r) => {
         if (!r.ok) throw new Error(String(r.status));
         return r.json();
@@ -56,7 +59,7 @@ export default function ReviewView({
         setBook(d);
         // 复习会话：非今日则按到期卡重建队列（词库顺序）
         const today = todayStr();
-        const cur = loadStudyState();
+        const cur = loadStudyState(bookId);
         let rv = cur.review;
         if (!rv || rv.date !== today) {
           const q = d.words
@@ -67,7 +70,7 @@ export default function ReviewView({
             .map((w) => w.word);
           rv = { date: today, queue: q, pos: 0 };
           const saved = { ...cur, review: rv };
-          saveStudyState(saved);
+          saveStudyState(bookId, saved);
           setState(saved);
         }
         setSession(rv);
@@ -97,7 +100,7 @@ export default function ReviewView({
   if (error) {
     return (
       <main className="view-in flex min-h-screen flex-col bg-background">
-        <TopBar label="复习" onBack={onBack} />
+        <TopBar label={`复习 · ${BOOKS[bookId].label}`} onBack={onBack} />
         <section className="flex flex-1 items-center justify-center">
           <p className="text-sm text-neutral-400">词书加载失败，请刷新重试</p>
         </section>
@@ -109,7 +112,7 @@ export default function ReviewView({
   if (!session || queue.length === 0) {
     return (
       <main className="view-in flex min-h-screen flex-col bg-background">
-        <TopBar label="复习" onBack={onBack} />
+        <TopBar label={`复习 · ${BOOKS[bookId].label}`} onBack={onBack} />
         <section className="flex flex-1 flex-col items-center justify-center gap-8 px-6 text-center">
           <p className="text-lg text-neutral-700">
             {noDueToday ? "今天没有到期的单词" : "还没有学过的单词"}
@@ -261,7 +264,7 @@ export default function ReviewView({
   if (!w) {
     return (
       <main className="view-in flex min-h-screen flex-col bg-background">
-        <TopBar label="复习" onBack={onBack} />
+        <TopBar label={`复习 · ${BOOKS[bookId].label}`} onBack={onBack} />
         <section className="flex flex-1 items-center justify-center">
           <p className="text-sm text-neutral-400">加载词库中…</p>
         </section>
@@ -278,7 +281,7 @@ export default function ReviewView({
       cards: { ...state.cards, [w.word]: nextCard },
       review: { ...session, pos: session.pos + 1 },
     };
-    saveStudyState(saved);
+    saveStudyState(bookId, saved);
     setState(saved);
     setSession(saved.review!);
     setFlipped(false);

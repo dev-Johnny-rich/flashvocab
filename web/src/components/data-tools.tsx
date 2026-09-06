@@ -6,8 +6,10 @@ import {
   getLastBackupDate,
   loadStudyState,
   resetStudyState,
+  saveStudyState,
   setLastBackupDate,
 } from "@/lib/storage";
+import { BOOK_ORDER, type BookId } from "@/lib/books";
 
 // 数据备份工具：导出 / 导入 / 重置学习数据
 export default function DataTools({ onClose }: { onClose: () => void }) {
@@ -37,10 +39,17 @@ export default function DataTools({ onClose }: { onClose: () => void }) {
             ? "昨天"
             : `${since} 天前`;
 
-  // 导出
+  // 导出（打包全部词书数据）
   const doExport = () => {
-    const s = loadStudyState();
-    const blob = new Blob([JSON.stringify(s, null, 2)], {
+    const books = {} as Record<BookId, unknown>;
+    for (const id of BOOK_ORDER) books[id] = loadStudyState(id);
+    const payload = {
+      app: "flashvocab-backup",
+      version: 2,
+      exportedAt: new Date().toISOString(),
+      books,
+    };
+    const blob = new Blob([JSON.stringify(payload, null, 2)], {
       type: "application/json",
     });
     const url = URL.createObjectURL(blob);
@@ -56,16 +65,25 @@ export default function DataTools({ onClose }: { onClose: () => void }) {
     setErr(null);
   };
 
-  // 导入
+  // 导入（新版 v2 合集逐词书写入；兼容旧版单词书文件）
   const doImport = async (f: File | undefined) => {
     if (!f) return;
     try {
       const text = await f.text();
       const data = JSON.parse(text);
-      if (data?.version !== 1 || typeof data?.cursor !== "number") {
+      if (data?.app === "flashvocab-backup" && data?.version === 2 && data?.books) {
+        for (const id of BOOK_ORDER) {
+          const b = data.books[id];
+          if (b && typeof b.cursor === "number") {
+            saveStudyState(id, b);
+          }
+        }
+      } else if (data?.version === 1 && typeof data?.cursor === "number") {
+        // 旧版单词书备份 → 导入 cet4
+        saveStudyState("cet4", data);
+      } else {
         throw new Error("格式不对");
       }
-      localStorage.setItem("flashvocab.state.v1", JSON.stringify(data));
       setLastBackupDate();
       setMsg("导入成功，正在刷新…");
       setErr(null);
@@ -80,10 +98,10 @@ export default function DataTools({ onClose }: { onClose: () => void }) {
   const doReset = () => {
     if (
       window.confirm(
-        "确定要清空全部学习数据吗？(已学/复习进度、评分记录都会删除，此操作不可恢复)\n建议先导出备份。",
+        "确定要清空全部词书的学习数据吗？(四级/六级进度、评分、复习排期都会删除，此操作不可恢复)\n建议先导出备份。",
       )
     ) {
-      resetStudyState();
+      for (const id of BOOK_ORDER) resetStudyState(id);
       window.location.reload();
     }
   };
