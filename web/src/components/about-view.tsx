@@ -35,6 +35,11 @@ export default function AboutView({ onBack }: { onBack?: () => void }) {
     };
   }, []);
 
+  // 今日日期（自动显示当天，不依赖数据文件手写日期）
+  const now = new Date();
+  const todayCn = `${now.getFullYear()} 年 ${now.getMonth() + 1} 月 ${now.getDate()} 日`;
+  const post = data ? data.posts[0] : null; // 每日动态模式：只显示最新（当日）内容
+
   return (
     <main className="view-in flex min-h-screen flex-col bg-background">
       <TopBar label="关于作者" onBack={onBack} />
@@ -64,33 +69,26 @@ export default function AboutView({ onBack }: { onBack?: () => void }) {
             )}
           </div>
 
-          {/* 每日学习日志 */}
-          <h2 className="mt-8 text-xs uppercase tracking-widest text-neutral-400">
-            每日学习日志
-          </h2>
-          {data.posts.length === 0 ? (
+          {/* 每日学习日志（日期自动为今天，内容每天更新） */}
+          <div className="mt-8 flex items-baseline justify-between">
+            <h2 className="text-xs uppercase tracking-widest text-neutral-400">
+              每日学习日志
+            </h2>
+            <p
+              className="text-sm tracking-wide text-neutral-500"
+              style={{ fontFamily: SERIF }}
+            >
+              {todayCn}
+            </p>
+          </div>
+          {!post ? (
             <p className="mt-6 text-sm text-neutral-400">
-              日志更新中，敬请期待
+              今日日志更新中，敬请期待
             </p>
           ) : (
-            <ul className="mt-4">
-              {data.posts.map((p) => (
-                <li
-                  key={p.date}
-                  className="border-b border-neutral-100 py-6 last:border-b-0"
-                >
-                  <p
-                    className="text-sm tracking-wide text-neutral-400"
-                    style={{ fontFamily: SERIF }}
-                  >
-                    {p.date}
-                  </p>
-                  <div className="mt-2 whitespace-pre-line text-[15px] leading-relaxed text-neutral-700">
-                    {p.content}
-                  </div>
-                </li>
-              ))}
-            </ul>
+            <div className="mt-4 whitespace-pre-line border-b border-neutral-100 py-6 text-[15px] leading-relaxed text-neutral-700">
+              {post.content}
+            </div>
           )}
 
           {/* 数据来源说明 */}
